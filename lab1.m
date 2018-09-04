@@ -9,6 +9,7 @@ leftArray = zeros(1,1);
 rightArray = zeros(1,1);
 
 pos = 0;
+sendVelocity(robot, 0, 0)
 tic
 while(pos < .3048)
     sendVelocity(robot, .05, .05)
@@ -24,6 +25,10 @@ while(pos < .3048)
     leftArray = [leftArray, leftPos - leftStart];
     
     plot(timeArray, leftArray, timeArray, rightArray)
+    title('Lab1')
+    xlabel('Distance (m)')
+    ylabel('Time (s)')
+    legend('Left Wheel', 'Right Wheel')
 end
 
 tic
@@ -32,17 +37,8 @@ while(toc <= 1)
     pause(.05)
 end
 
-leftStart = robot.encoders.LatestMessage.Vector.X;
-rightStart = robot.encoders.LatestMessage.Vector.Y;
-avgStart = (leftStart + rightStart) /2;
-
-old = curr;
-leftPos = leftStart;
-rightPos = rightStart;
-
-pos = 0;
 tic
-while(abs(pos) < .3048)
+while(pos > 0)
     sendVelocity(robot, -.05, -.05)
     curr = toc;
     pause(.05)
@@ -51,11 +47,15 @@ while(abs(pos) < .3048)
     rightPos = robot.encoders.LatestMessage.Vector.Y;
     pos = (((leftPos + rightPos)/2) - avgStart);
     
-    timeArray = [timeArray, old + curr];
+    timeArray = [timeArray, curr];
     rightArray = [rightArray, rightPos - rightStart];
     leftArray = [leftArray, leftPos - leftStart];
     
     plot(timeArray, leftArray, timeArray, rightArray)
+    title('Lab1')
+    xlabel('Distance (m)')
+    ylabel('Time (s)')
+    legend('Left Wheel', 'Right Wheel')
 end
 %disp(pos)
 
