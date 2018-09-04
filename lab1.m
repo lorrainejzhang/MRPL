@@ -1,4 +1,4 @@
-robot = raspbot('Raspbot-0');
+robot = raspbot();
 
 leftStart = robot.encoders.LatestMessage.Vector.X;
 rightStart = robot.encoders.LatestMessage.Vector.Y;
