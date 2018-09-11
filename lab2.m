@@ -17,8 +17,8 @@ while(go)
     pause(0.5);
     minRange = 1;
     for i = 1:360
-        [x, y, th] = irToXy(i, ranges(i));
-        if abs(ranges(i)) <= 1.0 && abs(ranges(i)) >= 0.06 && ((0 <= th && th <= pi/2) || (3*pi/2 <= th && th < 2*pi))
+        [x, y, th] = irToXy(i, ranges(i)); % th ranges from 0 to 2pi
+        if abs(ranges(i)) <= 1.0 && abs(ranges(i)) >= 0.06 && ((0 <= th && th <= pi/2) || (3*pi/2 <= th && th <= 2*pi))
             if ranges(i) < minRange
                 minRange = ranges(i);
                 minx = x;
@@ -27,8 +27,8 @@ while(go)
                 plot(miny, -minx, 'x');
                 title('Lab2 (robot perspective)');
                 axis([-2 2 -2 2]);
-                xlabel('y (m)');
-                ylabel('-x (m)');
+                xlabel('x (m)');
+                ylabel('y (m)');
             end
 %             xArray = [xArray, x];
 %             yArray = [yArray, y];
@@ -41,10 +41,9 @@ while(go)
     if minRange >= 1
         robot.sendVelocity(0,0);
     else
-        gain = minRange - .5;
-        prop = 0.5;
-        vel = prop * gain;
-        curv = miny / minRange^2);
+        gain = 0.5;
+        vel = gain * (minRange - .5);
+        curv = miny / minRange^2;
         angVel = curv * vel;
         tread = 0.085; %m
         leftVel = vel - (tread/2)*angVel;
