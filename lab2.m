@@ -6,9 +6,9 @@ go = true;
 % xArray = zeros(1,1);
 % yArray = zeros(1,1);
 % thArray = zeros(1,1);
-minRange = 1;
-minx = 5;
-miny = 5;
+minRange = 1; %m
+minx = 5; %m
+miny = 5; %m
 
 figure(1); clf;
 
@@ -25,7 +25,9 @@ while(go)
                 miny = y;
                 axis([-2 2 -2 2]);
                 plot(miny, -minx, 'x');
+                title('Lab2 (robot perspective)');
                 axis([-2 2 -2 2]);
+                legend('y (m)', '-x (m)');
             end
 %             xArray = [xArray, x];
 %             yArray = [yArray, y];
@@ -43,9 +45,9 @@ while(go)
         vel = prop*gain;
         curv = (miny / (minRange * minRange));
         angVel = curv * vel;
-        tread = 0.085;
-        rghtVel = vel + (tread/2)*curv;
+        tread = 0.085; %m
         leftVel = vel - (tread/2)*curv;
+        rghtVel = vel + (tread/2)*curv;
         robot.sendVelocity(leftVel,rghtVel);
     end
    
