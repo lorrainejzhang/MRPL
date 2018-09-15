@@ -1,9 +1,9 @@
-robot = raspbot('sim');
-changed = 0;
+robot = raspbot();
+global changed;
 go = true;
 
 leftArray = zeros(1,1);
-rightArray = zeros(1,1);
+rghtArray = zeros(1,1);
 
 while go
     
@@ -13,27 +13,31 @@ while go
     rghtEncoder = robot.encoders.LatestMessage.Vector.Y;
     time = tic;
     
+    
     changed = 0;
     
-    while(not changed)
+    while(changed == 0)
         robot.encoders.NewMessageFcn=@encoderEventListener;
+        pause(.1);
+        disp("here")
     end
 
     % differentiate left and right wheel encoders
     
     timediff = toc(tic);
-    leftEncoderNew = robot.encoders.latestMessage.Vector.X;
-    rghtEncoderNew = robot.encoders.latestMessage.Vector.Y;
+    leftEncoderNew = robot.encoders.LatestMessage.Vector.X;
+    rghtEncoderNew = robot.encoders.LatestMessage.Vector.Y;
     
-    leftVel = (leftEncoderNow - leftEncoder) / timediff;
-    rghtVel = (rghtEncoderNow - rghtEncoder) / timediff;
+    leftVel = (leftEncoderNew - leftEncoder) / timediff;
+    rghtVel = (rghtEncoderNew - rghtEncoder) / timediff;
+    disp(leftVel)
     
     leftArray = [leftArray, leftVel];
     rghtArray = [rghtArray, rghtVel];
     
-    changed = false;
+    changed = 0;
     
-    plot(leftArray, rghtArray);
+    plot(rghtArray);
     
     pause(0.5);
 end
