@@ -13,14 +13,10 @@ while go
     rghtEncoder = robot.encoders.LatestMessage.Vector.Y;
     time = tic;
     
-    go2 = true;
-    while go2
+    changed = 0;
+    
+    while(not changed)
         robot.encoders.NewMessageFcn=@encoderEventListener;
-        if changed == 1
-            break
-        else
-            pause(0.01)
-        end
     end
 
     % differentiate left and right wheel encoders
