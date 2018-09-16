@@ -5,8 +5,8 @@ function [x y th] = modelDiffSteerRobot(vl, vr, t0, tf, dt)
     v = (vl + vr) / 2;
     t = t0;
     tread = 0.085;
+    angVel = (vr - vl) / tread;
     while(t < tf)
-        angVel = (vr - vl) / tread;
         th = th + angVel * dt / 2;
         x = x + v * cos(th) * dt;
         y = y + v * sin(th) * dt;
