@@ -9,7 +9,9 @@ amax = 3 * 0.25;
 tramp = vmax/amax;
 sf = 1;
 tf = (sf + (vmax^2) / amax) / vmax;
-if(t < tramp)
+if (t < 0)
+    uref = 0;
+elseif (t < tramp)
     uref = sgn * amax * t;
 elseif (t > tramp && t < tf)
     uref = sgn * vmax;

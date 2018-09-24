@@ -18,9 +18,9 @@ posArray = zeros(1,1);
 % ylabel('Distance (m)')
 % legend('Left Wheel', 'Right Wheel');
 
-kp = 10.0;
+kp = 3.0;
 kd = 0.03;
-ki = 0.0;
+ki = 0.03;
 
 oldError = 0;
 error = 0;
@@ -28,17 +28,21 @@ time = 0;
 oldTime = 0;
 errorIntegral = 0;
 sref = 0;
+sdelay = 0;
 
 pos = 0;
 tic
+time = 0;
 
-while((1 - abs(pos)) >= 0.0001 && time < 6)
+tdelay = .2125;
+%while((1 - abs(pos)) >= 0.0001 && time < 6)
+while (time < 5.3467)
     oldError = error;
     oldTime = time;
     time = toc;
     pause(.05)
     
-    exPos = time * 0.03;
+    
     
     leftPos = robot.encoders.LatestMessage.Vector.X;
     rightPos = robot.encoders.LatestMessage.Vector.Y;
@@ -47,13 +51,17 @@ while((1 - abs(pos)) >= 0.0001 && time < 6)
     
     delTime = time - oldTime;
     uref = trapezoidalVelocityProfile(time,1);
+    udelay = trapezoidalVelocityProfile(time-tdelay,1);
     sref = sref + (uref * delTime);
+    sdelay = sdelay + (udelay * delTime);
     %disp(sref);
+    
+    exPos = sdelay;
     
     error = exPos - pos;
     errorArray = [errorArray, error];
     urefArray = [urefArray, uref];
-    srefArray = [srefArray, sref];
+    srefArray = [srefArray, sdelay];
     posArray = [posArray, pos];
     
     
@@ -61,19 +69,29 @@ while((1 - abs(pos)) >= 0.0001 && time < 6)
     
     errorDerivative = (error - oldError) / delTime;
     errorIntegral = errorIntegral + error * delTime;
-    %control = error*kp + errorDerivative*kd + errorIntegral*ki;
-    control = uref;
-    sendVelocity(robot, control, control);
+    if (errorIntegral > 0)
+        sign = 1;
+    else
+        sign = -1;
+    end
+    eiMax = .01;
+    if (abs(errorIntegral) > eiMax)
+        errorIntegral = sign * eiMax;
+    end
+    control = error*kp + errorDerivative*kd + errorIntegral*ki;
+    disp( errorIntegral)
+    %control = uref;
+    sendVelocity(robot, uref+control, uref+control);
     
     timeArray = [timeArray, time];
     rightArray = [rightArray, rightPos - rightStart];
     leftArray = [leftArray, leftPos - leftStart];
     
-    %plot(timeArray, urefArray);
+    plot(timeArray, errorArray);
     title('Lab1');
     xlabel('Time (s)');
     ylabel('Error');
 end
 
-plot(timeArray, srefArray, timeArray, posArray);
+%plot(timeArray, srefArray, timeArray, posArray);
 robot.stop();
