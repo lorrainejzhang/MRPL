@@ -7,7 +7,6 @@ function uref = trapezoidalVelocityProfile(t, sgn)
 vmax = 0.25;
 amax = 3 * 0.25;
 tramp = vmax/amax; %1/3 meter
-tdelay = 0.2125;
 sf = 1;
 tf = (sf + (vmax^2) / amax) / vmax;
 if (t < 0 || t > tf)
