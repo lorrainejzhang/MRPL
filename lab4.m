@@ -3,13 +3,14 @@ robot = raspbot();
 
 %1, 0.4, 0.07, 0.2, -1 worked before
 %1.5, 0.6, 0.1, 0.2, -1 works well
-kp = 1.1;
-kd = 0.2;
-ki = 0.1;
+kp = 3;
+kd = 0.05;
+ki = 2;
 eiMax = 0.2;
 sgn = 1;
-timestep = 0.01;
-tdelay = 0.2125;
+timestep = 0.05;
+tdelay = 0.3;%0.2125;
+feedbackOn = 1;
 
 leftStart = robot.encoders.LatestMessage.Vector.X;
 rightStart = robot.encoders.LatestMessage.Vector.Y;
@@ -79,14 +80,14 @@ while (time < runTime + breakTime)
     if (abs(errorIntegral) > eiMax)
         errorIntegral = sign(errorIntegral) * eiMax;
     end
-    control = error*kp + errorDerivative*kd + errorIntegral*ki;
+    control = feedbackOn *(error*kp + errorDerivative*kd + errorIntegral*ki);
     %disp( errorIntegral)
     %control = uref;
-    if (time < runTime)
-        sendVelocity(robot, uref+control, uref+control);
-    else
-        sendVelocity(robot, 0, 0);
-    end
+    %if (time < runTime)
+    sendVelocity(robot, uref+control, uref+control);
+    %else
+    %    robot.stop();
+    %end
     timeArray = [timeArray, time];
     rightArray = [rightArray, rightPos - rightStart];
     leftArray = [leftArray, leftPos - leftStart];
@@ -96,7 +97,6 @@ while (time < runTime + breakTime)
     xlabel('Time (s)');
     ylabel('Error');
 end
-sendVelocity(robot, 0, 0);
 disp(error)
 
 plot(timeArray, srefArray, timeArray, posArray);
