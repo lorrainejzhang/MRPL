@@ -1,4 +1,16 @@
+% Error still in the cm, always a small gap between sref and pos at end?
 robot = raspbot();
+
+%1, 0.4, 0.07, 0.2, -1 worked before
+%1.5, 0.6, 0.1, 0.2, -1 works well
+kp = 3;
+kd = 0.05;
+ki = 2;
+eiMax = 0.2;
+sgn = 1;
+timestep = 0.05;
+tdelay = 0.3;%0.2125;
+feedbackOn = 1;
 
 leftStart = robot.encoders.LatestMessage.Vector.X;
 rightStart = robot.encoders.LatestMessage.Vector.Y;
@@ -18,10 +30,6 @@ posArray = zeros(1,1);
 % ylabel('Distance (m)')
 % legend('Left Wheel', 'Right Wheel');
 
-kp = 3.0;
-kd = 0.03;
-ki = 0.03;
-
 oldError = 0;
 error = 0;
 time = 0;
@@ -33,14 +41,14 @@ sdelay = 0;
 pos = 0;
 tic
 time = 0;
+runTime = 4.3333;
+breakTime = 1;
 
-tdelay = .2125;
-%while((1 - abs(pos)) >= 0.0001 && time < 6)
-while (time < 5.3467)
+while (time < runTime + breakTime)
     oldError = error;
     oldTime = time;
     time = toc;
-    pause(.05)
+    pause(timestep)
     
     
     
@@ -50,8 +58,8 @@ while (time < 5.3467)
     %disp(pos);
     
     delTime = time - oldTime;
-    uref = trapezoidalVelocityProfile(time,1);
-    udelay = trapezoidalVelocityProfile(time-tdelay,1);
+    uref = trapezoidalVelocityProfile(time,sgn);
+    udelay = trapezoidalVelocityProfile(time-tdelay,sgn);
     sref = sref + (uref * delTime);
     sdelay = sdelay + (udelay * delTime);
     %disp(sref);
@@ -69,20 +77,17 @@ while (time < 5.3467)
     
     errorDerivative = (error - oldError) / delTime;
     errorIntegral = errorIntegral + error * delTime;
-    if (errorIntegral > 0)
-        sign = 1;
-    else
-        sign = -1;
-    end
-    eiMax = .01;
     if (abs(errorIntegral) > eiMax)
-        errorIntegral = sign * eiMax;
+        errorIntegral = sign(errorIntegral) * eiMax;
     end
-    control = error*kp + errorDerivative*kd + errorIntegral*ki;
-    disp( errorIntegral)
+    control = feedbackOn *(error*kp + errorDerivative*kd + errorIntegral*ki);
+    %disp( errorIntegral)
     %control = uref;
+    %if (time < runTime)
     sendVelocity(robot, uref+control, uref+control);
-    
+    %else
+    %    robot.stop();
+    %end
     timeArray = [timeArray, time];
     rightArray = [rightArray, rightPos - rightStart];
     leftArray = [leftArray, leftPos - leftStart];
@@ -92,6 +97,7 @@ while (time < 5.3467)
     xlabel('Time (s)');
     ylabel('Error');
 end
+disp(error)
 
-%plot(timeArray, srefArray, timeArray, posArray);
+plot(timeArray, srefArray, timeArray, posArray);
 robot.stop();
