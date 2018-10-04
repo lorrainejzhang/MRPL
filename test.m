@@ -16,15 +16,14 @@ enposth = 0.0;
 oldLeft = 0.0;
 oldRght = 0.0;
 oldt = 0.0;
-leftFirst = 0.0;
-rghtFirst = 0.0;
 robot = raspbot();
 %offset = double(robot.encoders.LatestMessage.Header.Stamp.Sec) + double(robot.encoders.LatestMessage.Header.Stamp.Nsec)/1e9;
 goodT = 0;
-disp(goodT)
 robot.encoders.NewMessageFcn=@encoderEventListener;
+leftFirst = robot.encoders.LatestMessage.Vector.X;
+rghtFirst = robot.encoders.LatestMessage.Vector.Y;
 
-ref = figure8ReferenceControl(3, 1, 1);
+ref = figure8ReferenceControl(3, 1, .5);
 %ref = trapReferenceControl();
 traj = robotTrajectory(100000, ref);
 follower = trajectoryFollower();
@@ -39,25 +38,34 @@ dt = dur/size;
 % ts = zeros(1,size);
 xs = zeros(1,size);
 ys = zeros(1,size);
+enposxs = zeros(1,size);
+enposys = zeros(1,size);
 % vs = zeros(1,size);
 tread = 0.085;
 i = 1;
 T = 0;
 Ti = tic();
-while(T <= dur)
+while(T <= dur + 1)
     T = toc(Ti);
 
     %ts(i) = (i-1)*dt;
-    %[x, y, th] = traj.getPoseAtTime(T);
+    [x, y, th] = traj.getPoseAtTime(T);
     %disp(enposx)
-    follower.sendVel(robot, T, traj, enposx,enposy,enposth, goodT);
+    follower.sendVel(robot, T, traj, enposx,enposy,enposth, goodT, ref);
     
-   
-    %xs(i) = x; ys(i) = y;
+    if abs(x) > 1
+        x = 0;
+    end
+    if abs(y) > 1
+        y = 0;
+    end
+    xs(i) = x; ys(i) = y;
+    enposxs(i) = enposx; enposys(i) = enposy;
     i = i + 1;
     pause(.05);
 end
 robot.sendVelocity(0,0);
-robot.stop();
-
+robot.shutdown();
+xint = traj.x;
 %plot(xs,ys)
+plot(xs,ys,enposxs,enposys)

@@ -1,4 +1,7 @@
 classdef robotTrajectory
+    properties(Constant)
+        meth = "spline"
+    end
     properties
         t,v,x,y,th,s,w;
     end
@@ -47,21 +50,21 @@ classdef robotTrajectory
         end
             
         function [x, y, th] = getPoseAtTime(obj, t)
-            x = interp1(obj.t, obj.x, t);
-            y = interp1(obj.t, obj.y, t);
-            th = interp1(obj.t, obj.th, t);
+            x = interp1(obj.t, obj.x, t, obj.meth);
+            y = interp1(obj.t, obj.y, t, obj.meth);
+            th = interp1(obj.t, obj.th, t, obj.meth);
         end
         
         function vel = getVelAtTime(obj, t)
-            vel = interp1(obj.t, obj.v, t);
+            vel = interp1(obj.t, obj.v, t, obj.meth);
         end
         
         function omega = getOmegaAtTime(obj, t)
-            omega = interp1(obj.t, obj.w, t);
+            omega = interp1(obj.t, obj.w, t, obj.meth);
         end
         
         function dist = getDistAtTime(obj, t)
-            dist = interp1(obj.t, obj.s, t);
+            dist = interp1(obj.t, obj.s, t, obj.meth);
         end    
     end
 end
