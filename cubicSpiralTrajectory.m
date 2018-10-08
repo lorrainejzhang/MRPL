@@ -91,6 +91,7 @@ classdef cubicSpiralTrajectory < handle
                     % if tmax is exceeded in absolute value at any time.
                         s = ds * (i - 1);
                         k = s * (a + b * s) * (s - 1);
+                        r = r + k * k * ds;
                         t = t + k * ds;
                         if(abs(t)>tMax)
                             broke = true;
@@ -148,7 +149,7 @@ classdef cubicSpiralTrajectory < handle
                 plot(plotArrayX(1:n-1),plotArrayY(1:n-1),'.k','MarkerSize',3);
             end
             
-            save('cubicSpirals','a1Tab','a2Tab','b1Tab','b2Tab','r1Tab','r2Tab');
+            save('cubicSpirals2mm_015rads','a1Tab','a2Tab','b1Tab','b2Tab','r1Tab','r2Tab');
 
             figure(2);
             I1 = mat2gray(a1Tab.cellArray, [-aMax aMax]);
@@ -219,7 +220,7 @@ classdef cubicSpiralTrajectory < handle
 
             % Plot the corresponding unit
             su = 1.0;
-            clothu = cubicSpiral([au bu su],201);
+            clothu = cubicSpiralTrajectory([au bu su],201);
 
             %hold on;
 
@@ -238,7 +239,8 @@ classdef cubicSpiralTrajectory < handle
                 as = -as;  
                 ss = -ss;
             end
-            curve = cubicSpiral([as bs ss],201);
+            curve = cubicSpiralTrajectory([as bs ss],201);
+            plot(curve.poseArray(1,:), curve.poseArray(2,:));
         end
             
     end
@@ -269,10 +271,12 @@ classdef cubicSpiralTrajectory < handle
             th = 0;
             x = 0;
             y = 0;
+            r = 0;
             for i=1:obj.numSamples-1
                 s = ds * (i - 1);
                 k = s * (a + b * s) * (s - sf);
                 th = th + k * ds;
+                r = r + k * k * ds;
                 x = x + cos(th) * ds;
                 y = y + sin(th) * ds;
                 obj.poseArray(3,i+1) = th;
