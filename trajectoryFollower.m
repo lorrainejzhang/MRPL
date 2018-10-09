@@ -21,7 +21,7 @@ classdef trajectoryFollower
             if isnan(vl) || isinf(vl)
                 vl = 0;
             end
-            if (T > ref.getTrajectoryDuration) && (T < ref.getTrajectoryDuration + 2)
+            if (T > traj.getTrajectoryDuration) && (T < traj.getTrajectoryDuration + 2)
                 vl = 0;
                 vr = 0;
             end
