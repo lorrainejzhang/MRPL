@@ -1,6 +1,7 @@
 classdef mrplSystem
     properties
         robot = raspbot();
+        enposx = 0;
         enposy = 0;
         enposth = 0;
         oldLeft = 0;
@@ -12,14 +13,17 @@ classdef mrplSystem
         offset = 0;
     end
     
-    methods        
-        function executeTrajectoryToRelativePose(obj, x, y, th, maxV, feedbackOn)
+    methods (Static = true)        
+        function executeTrajectoryToRelativePose(x, y, th, maxV, feedbackOn)
            %Have to call cubicSpiralTrajectory.makeLookupTable(100);
            traj = cubicSpiralTrajectory.planTrajectory(x, y, th, 1);
            traj.planVelocities(maxV);
-           executeTrajectory(traj, feedbackOn);
+           mrpl = mrplSystem;
+           mrpl.executeTrajectory(traj, feedbackOn);
         end
-        
+    end
+    
+    methods
         function executeTrajectory(obj, traj, feedbackOn)
             obj.robot.encoders.NewMessageFcn=@encoderEventListener;
             obj.leftFirst = obj.robot.encoders.LatestMessage.Vector.X;
@@ -46,8 +50,7 @@ classdef mrplSystem
                 %ts(i) = (i-1)*dt;
                 [x, y, th] = traj.getPoseAtTime(T);
                 %disp(obj.enposx)
-                follower.sendVel(obj.robot, T, traj,
-                                 obj.enposx,obj.enposy,obj.enposth, obj.goodT, feedbackOn);
+                follower.sendVel(obj.robot, T, traj,obj.enposx,obj.enposy,obj.enposth, obj.goodT, feedbackOn);
 
                 if abs(x) > 1
                     x = 0;
