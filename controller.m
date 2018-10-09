@@ -8,7 +8,10 @@ classdef controller
     end
     methods
         function [backVTot, backWTot] = feedback(obj, T, traj, enposx,enposy,enposth, V)
-            [x, y, th] = traj.getPoseAtTime(T);
+            pose = traj.getPoseAtTime(T);
+            x = pose(1);
+            y = pose(2);
+            th = pose(3);
             %disp(enPose)
 %             disp(x)
 %             disp(enposx)
