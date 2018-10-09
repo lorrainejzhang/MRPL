@@ -1,16 +1,5 @@
 classdef mrplSystem
     properties
-        robot = raspbot();
-        enposx = 0;
-        enposy = 0;
-        enposth = 0;
-        oldLeft = 0;
-        oldRght = 0;
-        oldt = 0;
-        leftFirst = 0;
-        rghtFirst = 0;
-        goodT = 0;
-        offset = 0;
     end
     
     methods (Static = true)        
@@ -25,20 +14,42 @@ classdef mrplSystem
     
     methods
         function executeTrajectory(obj, traj, feedbackOn)
-            obj.robot.encoders.NewMessageFcn=@encoderEventListener;
-            obj.leftFirst = obj.robot.encoders.LatestMessage.Vector.X;
-            obj.rghtFirst = obj.robot.encoders.LatestMessage.Vector.Y;
+            global enposx;
+            global enposy;
+            global enposth;
+            global oldLeft;
+            global oldRght;
+            global oldt;
+            global robot;
+            global leftFirst;
+            global rghtFirst;
+            global goodT;
+            global offset;
+            tread = 0.085;
+            robot = raspbot();
+            enposx = 0.0;
+            enposy = 0.0;
+            enposth = 0.0;
+            oldLeft = 0.0;
+            oldRght = 0.0;
+            oldt = 0.0;
+            %offset = double(robot.encoders.LatestMessage.Header.Stamp.Sec) + double(robot.encoders.LatestMessage.Header.Stamp.Nsec)/1e9;
+            goodT = 0;
+            robot.encoders.NewMessageFcn=@encoderEventListener;
+            leftFirst = robot.encoders.LatestMessage.Vector.X;
+            rghtFirst = robot.encoders.LatestMessage.Vector.Y;
             
             follower = trajectoryFollower();
 
             size = 100000;
-            dur = traj.getTrajectoryDuration;
+            dur = traj.getTrajectoryDuration();
+            disp(dur);
             dt = dur/size;
             % ts = zeros(1,size);
             xs = zeros(1,size);
             ys = zeros(1,size);
-            obj.enposxs = zeros(1,size);
-            obj.enposys = zeros(1,size);
+            enposxs = zeros(1,size);
+            enposys = zeros(1,size);
             % vs = zeros(1,size);
             tread = 0.085;
             i = 1;
@@ -48,9 +59,12 @@ classdef mrplSystem
                 T = toc(Ti);
 
                 %ts(i) = (i-1)*dt;
-                [x, y, th] = traj.getPoseAtTime(T);
+                pose = traj.getPoseAtTime(T);
+                x = pose(1);
+                y = pose(2);
+                th = pose(3);
                 %disp(obj.enposx)
-                follower.sendVel(obj.robot, T, traj,obj.enposx,obj.enposy,obj.enposth, obj.goodT, feedbackOn);
+                follower.sendVel(robot, T, traj,enposx,enposy,enposth, goodT, feedbackOn);
 
                 if abs(x) > 1
                     x = 0;
@@ -59,14 +73,14 @@ classdef mrplSystem
                     y = 0;
                 end
                 xs(i) = x; ys(i) = y;
-                obj.enposxs(i) = obj.enposx; obj.enposys(i) = obj.enposy;
+                enposxs(i) = enposx; enposys(i) = enposy;
                 i = i + 1;
                 pause(.05);
             end
-            obj.robot.sendVelocity(0,0);
-            obj.robot.shutdown();
+            robot.sendVelocity(0,0);
+            robot.shutdown();
             %plot(xs,ys)
-            plot(xs,ys,obj.enposxs,obj.enposys)
+            plot(xs,ys,enposxs,enposys)
         end
         
         function encoderEventListener(obj, handle, event)
