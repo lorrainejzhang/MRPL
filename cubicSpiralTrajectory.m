@@ -117,7 +117,7 @@ classdef cubicSpiralTrajectory < handle
                     elseif(n == plotSamples+1)
                         if(scale > 20)
                             figure(1);
-                            plot(plotArrayX(1:n-1),plotArrayY(1:n-1),'.k','MarkerSize',3);
+                            figure;plot(plotArrayX(1:n-1),plotArrayY(1:n-1),'.k','MarkerSize',3);
                             hold on;
                             fprintf('Plot array dumping\n');
                         end
@@ -146,7 +146,7 @@ classdef cubicSpiralTrajectory < handle
             fprintf('Took %f minutes\n',elapsedTime/60.0);
             
             if(scale > 10)
-                plot(plotArrayX(1:n-1),plotArrayY(1:n-1),'.k','MarkerSize',3);
+                figure;plot(plotArrayX(1:n-1),plotArrayY(1:n-1),'.k','MarkerSize',3);
             end
             
             save('cubicSpirals2mm_015rads','a1Tab','a2Tab','b1Tab','b2Tab','r1Tab','r2Tab');
@@ -282,6 +282,8 @@ classdef cubicSpiralTrajectory < handle
                 obj.poseArray(3,i+1) = th;
                 obj.poseArray(1,i+1) = x;
                 obj.poseArray(2,i+1) = y;
+                obj.distArray(i+1) = s;
+                obj.curvArray(i+1) = k;
             end
             i = obj.numSamples;
             s = (i-1)*ds;  
@@ -301,9 +303,10 @@ classdef cubicSpiralTrajectory < handle
                 ds = obj.distArray(i+1) - obj.distArray(i);
                 V = obj.VArray(i);
                 % Avoid division by zero
-                if(abs(V) < 0.001); V = obj.VArray(i+1); end;
-
-                obj.timeArray(i+1)= obj.timeArray(i)+ds/V;
+                if(abs(V) < 0.001) V = obj.VArray(i+1);
+                else
+                    obj.timeArray(i+1) = obj.timeArray(i)+ds/V;
+                end
             end
         end   
     end
@@ -328,7 +331,9 @@ classdef cubicSpiralTrajectory < handle
         function plot(obj)
             plotArray1 = obj.poseArray(1,:);
             plotArray2 = obj.poseArray(2,:);
-            plot(plotArray1,plotArray2,'r');
+
+            plot(f, plotArray1,plotArray2,'r');
+            hold on;
             xf = obj.poseArray(1,obj.numSamples);
             yf = obj.poseArray(2,obj.numSamples);
             r = max([abs(xf) abs(yf)]);
@@ -339,6 +344,7 @@ classdef cubicSpiralTrajectory < handle
        function planVelocities(obj,Vmax)
             % Plan the highest possible velocity for the path where no
             % wheel may exceed Vmax in absolute value.
+            
             for i=1:obj.numSamples
                 Vbase = Vmax;
                 % Add velocity ramps for first and last 5 cm
@@ -353,13 +359,14 @@ classdef cubicSpiralTrajectory < handle
                         Vbase = Vbase * sDn/obj.rampLength;
                     end
                 end
+                
                 % Now proceed with base velocity 
                 %disp(Vbase);
                 V = Vbase*obj.sgn; % Drive forward or backward as desired.
                 K = obj.curvArray(i);
                 w = K*V;
                 vr = V + robotModel.W2*w;
-                vl = V - robotModel.W2*w;               
+                vl = V - robotModel.W2*w;  
                 if(abs(vr) > Vbase)
                     vrNew = Vbase * sign(vr);
                     vl = vl * vrNew/vr;
@@ -373,7 +380,7 @@ classdef cubicSpiralTrajectory < handle
                 obj.vlArray(i) = vl;
                 obj.vrArray(i) = vr;
                 obj.VArray(i) = (vr + vl)/2.0;
-                obj.wArray(i) = (vr - vl)/robotModel.W;                
+                obj.wArray(i) = (vr - vl)/robotModel.W;
             end
             % Now compute the times that are implied by the velocities and
             % the distances.
@@ -422,7 +429,7 @@ classdef cubicSpiralTrajectory < handle
                 %disp('this pose');
                 thisPose = newObj.getFinalPose();
                 error = norm(thisPose-goalPose);
-                disp(error);
+%                 disp(error);
                 if(n >=20)
                     fprintf('cubicSpiral failing to refine Parameters\n');
                     break;
@@ -469,7 +476,7 @@ classdef cubicSpiralTrajectory < handle
             if( t < obj.timeArray(1))
                 V = 0.0;
             else
-                V  = interp1(obj.timeArray,obj.VArray,t,'pchip','extrap');  
+                V  = interp1(obj.timeArray(3:end),obj.VArray(3:end),t,'pchip','extrap');  
             end
         end
             
@@ -477,14 +484,18 @@ classdef cubicSpiralTrajectory < handle
             if(t < obj.timeArray(1))
                 w = 0.0;
             else
-                w  = interp1(obj.timeArray,obj.wArray,t,'pchip','extrap');  
+                w  = interp1(obj.timeArray(3:end),obj.wArray(3:end),t,'pchip','extrap');  
             end
         end
             
         function pose  = getPoseAtTime(obj,t)
-            x = interp1(obj.timeArray,obj.poseArray(1,:),t,'pchip','extrap');
-            y = interp1(obj.timeArray,obj.poseArray(2,:),t,'pchip','extrap');
-            th = interp1(obj.timeArray,obj.poseArray(3,:),t,'pchip','extrap');
+%             disp(obj.poseArray(1,:));
+            x = interp1(obj.timeArray(3:end),obj.poseArray(1,3:end),t,'pchip','extrap');
+            y = interp1(obj.timeArray(3:end),obj.poseArray(2,3:end),t,'pchip','extrap');
+            th = interp1(obj.timeArray(3:end),obj.poseArray(3,3:end),t,'pchip','extrap');
+%             x = interp1(unique(obj.timeArray),unique(obj.poseArray(1,:)),t, 'spline');
+%             y = interp1(unique(obj.timeArray),unique(obj.poseArray(2,:)),t, 'spline');
+%             th = interp1(unique(obj.timeArray),unique(obj.poseArray(3,:)),t, 'spline');
             pose  = [x ; y ; th];  
         end  
         
