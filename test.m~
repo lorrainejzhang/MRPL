@@ -79,4 +79,4 @@ plot(xs(1:i),ys(1:i),enposxs(1:i),enposys(1:i))
 xlim([-.6 .6]);
 ylim([-.6 .6]);
 
-%plot(ta(1:i),bva(1:i),ta(1:i),bwa(1:i))
+plot(ta(1:i),bva(1:i),ta(1:i),bwa(1:i))

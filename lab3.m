@@ -24,7 +24,7 @@ while go
 
     % differentiate left and right wheel encoders
     
-    timediff = toc(tic);
+    timediff = toc(time);
     leftEncoderNew = robot.encoders.LatestMessage.Vector.X;
     rghtEncoderNew = robot.encoders.LatestMessage.Vector.Y;
     

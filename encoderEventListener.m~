@@ -35,19 +35,11 @@ function encoderEventListener(handle,event)
     %disp(goodT)
     oldt = encoderDataTimestamp;
     
-    vecx = robot.encoders.LatestMessage.Vector.X;
-    vecy = robot.encoders.LatestMessage.Vector.Y;
-    dleft = vecx - leftFirst - oldLeft;
-    drght = vecy - rghtFirst - oldRght;
-    oldLeft = vecx - leftFirst;
-    oldRght = vecy - rghtFirst;
 
-
-%     dleft = robot.encoders.LatestMessage.Vector.X - leftFirst - oldLeft;
-%     drght = robot.encoders.LatestMessage.Vector.Y - rghtFirst - oldRght;
-%     oldLeft = robot.encoders.LatestMessage.Vector.X - leftFirst;
-%     oldRght = robot.encoders.LatestMessage.Vector.Y - rghtFirst;
-    
+    dleft = robot.encoders.LatestMessage.Vector.X - leftFirst - oldLeft;
+    drght = robot.encoders.LatestMessage.Vector.Y - rghtFirst - oldRght;
+    oldLeft = robot.encoders.LatestMessage.Vector.X - leftFirst;
+    oldRght = robot.encoders.LatestMessage.Vector.Y - rghtFirst;
     envl = dleft/dt; 
     envr = drght/dt;
     env = (envl+envr)/2;

@@ -240,7 +240,7 @@ classdef cubicSpiralTrajectory < handle
                 ss = -ss;
             end
             curve = cubicSpiralTrajectory([as bs ss],201);
-            plot(curve.poseArray(1,:), curve.poseArray(2,:));
+            %plot(curve.poseArray(1,:), curve.poseArray(2,:));
         end
             
     end

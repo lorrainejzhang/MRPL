@@ -49,17 +49,18 @@ classdef robotTrajectory
            
         end
             
-        function [x, y, th] = getPoseAtTime(obj, t)
+        function pose = getPoseAtTime(obj, t)
             x = interp1(obj.t, obj.x, t, obj.meth);
             y = interp1(obj.t, obj.y, t, obj.meth);
             th = interp1(obj.t, obj.th, t, obj.meth);
+            pose = [x; y; th];
         end
         
-        function vel = getVelAtTime(obj, t)
+        function vel = getVAtTime(obj, t)
             vel = interp1(obj.t, obj.v, t, obj.meth);
         end
         
-        function omega = getOmegaAtTime(obj, t)
+        function omega = getwAtTime(obj, t)
             omega = interp1(obj.t, obj.w, t, obj.meth);
         end
         

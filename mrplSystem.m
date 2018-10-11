@@ -1,14 +1,17 @@
-classdef mrplSystem
+classdef mrplSystem < handle
     properties
+        xx;
+        yy;
     end
     
     methods (Static = true)        
-        function executeTrajectoryToRelativePose(x, y, th, maxV, feedbackOn)
+        function thing = executeTrajectoryToRelativePose(x, y, th, maxV, feedbackOn)
            %Have to call cubicSpiralTrajectory.makeLookupTable(100);
            traj = cubicSpiralTrajectory.planTrajectory(x, y, th, 1);
            traj.planVelocities(maxV);
            mrpl = mrplSystem;
            mrpl.executeTrajectory(traj, feedbackOn);
+           thing = mrpl;
         end
     end
     
@@ -21,10 +24,9 @@ classdef mrplSystem
             global oldRght;
             global oldt;
             global robot;
-            global leftFirst;
-            global rghtFirst;
             global goodT;
-            global offset;
+            global init;
+            init = 1;
             tread = 0.085;
             robot = raspbot();
             enposx = 0.0;
@@ -33,11 +35,8 @@ classdef mrplSystem
             oldLeft = 0.0;
             oldRght = 0.0;
             oldt = 0.0;
-            %offset = double(robot.encoders.LatestMessage.Header.Stamp.Sec) + double(robot.encoders.LatestMessage.Header.Stamp.Nsec)/1e9;
             goodT = 0;
             robot.encoders.NewMessageFcn=@encoderEventListener;
-            leftFirst = robot.encoders.LatestMessage.Vector.X;
-            rghtFirst = robot.encoders.LatestMessage.Vector.Y;
             
             follower = trajectoryFollower();
 
@@ -52,7 +51,7 @@ classdef mrplSystem
             enposys = zeros(1,size);
             % vs = zeros(1,size);
             tread = 0.085;
-            i = 1;
+            i = 0;
             T = 0;
             Ti = tic();
             while(T <= dur + 1)
@@ -66,21 +65,24 @@ classdef mrplSystem
                 %disp(obj.enposx)
                 follower.sendVel(robot, T, traj,enposx,enposy,enposth, goodT, feedbackOn);
 
-                if abs(x) > 1
-                    x = 0;
-                end
-                if abs(y) > 1
-                    y = 0;
-                end
-                xs(i) = x; ys(i) = y;
-                enposxs(i) = enposx; enposys(i) = enposy;
+%                 if abs(x) > 1
+%                     x = 0;
+%                 end
+%                 if abs(y) > 1
+%                     y = 0;
+%                 end
                 i = i + 1;
+                xs(i) = x; ys(i) = y;
+                
+                enposxs(i) = enposx; enposys(i) = enposy;
+                
                 pause(.05);
             end
             robot.sendVelocity(0,0);
             robot.shutdown();
-            %plot(xs,ys)
-            plot(xs,ys,enposxs,enposys)
+            obj.xx = xs(1:i);
+            obj.yy = ys(1:i);
+            plot(xs(1:i),ys(1:i),enposxs(1:i),enposys(1:i))
         end
         
         function encoderEventListener(obj, handle, event)
