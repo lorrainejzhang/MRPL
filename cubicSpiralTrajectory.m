@@ -284,6 +284,7 @@ classdef cubicSpiralTrajectory < handle
                 obj.poseArray(2,i+1) = y;
                 obj.distArray(i+1) = s;
                 obj.curvArray(i+1) = k;
+                %fprintf("k %f, s %f, ds %f, i %d\n",k,s,ds,i);
             end
             i = obj.numSamples;
             s = (i-1)*ds;  
@@ -323,8 +324,10 @@ classdef cubicSpiralTrajectory < handle
             if(nargin == 2)
                 obj.numSamples = numSamples;
                 obj.parms = parms;
+                %disp(parms)
                 obj.integrateCommands();
                 obj.sgn = sign(parms(3)); % Critical for proper time series
+                %disp(obj.sgn)
             end
         end
         
@@ -366,7 +369,9 @@ classdef cubicSpiralTrajectory < handle
                 K = obj.curvArray(i);
                 w = K*V;
                 vr = V + robotModel.W2*w;
-                vl = V - robotModel.W2*w;  
+                vl = V - robotModel.W2*w;
+                %disp(K);
+                %disp(vl); disp(vr);
                 if(abs(vr) > Vbase)
                     vrNew = Vbase * sign(vr);
                     vl = vl * vrNew/vr;
@@ -377,6 +382,7 @@ classdef cubicSpiralTrajectory < handle
                     vr = vr * vlNew/vl;
                     vl = vlNew;
                 end
+                %disp(vl); disp(vr);
                 obj.vlArray(i) = vl;
                 obj.vrArray(i) = vr;
                 obj.VArray(i) = (vr + vl)/2.0;
@@ -490,9 +496,13 @@ classdef cubicSpiralTrajectory < handle
             
         function pose  = getPoseAtTime(obj,t)
 %             disp(obj.poseArray(1,:));
-            x = interp1(obj.timeArray(3:end),obj.poseArray(1,3:end),t,'pchip','extrap');
-            y = interp1(obj.timeArray(3:end),obj.poseArray(2,3:end),t,'pchip','extrap');
-            th = interp1(obj.timeArray(3:end),obj.poseArray(3,3:end),t,'pchip','extrap');
+            s = 3;
+%             disp(obj.timeArray(1:50))
+%             disp(obj.VArray(1:10))
+%             disp(obj.distArray(1:10))
+            x = interp1(obj.timeArray(s:end),obj.poseArray(1,s:end),t,'pchip','extrap');
+            y = interp1(obj.timeArray(s:end),obj.poseArray(2,s:end),t,'pchip','extrap');
+            th = interp1(obj.timeArray(s:end),obj.poseArray(3,s:end),t,'pchip','extrap');
 %             x = interp1(unique(obj.timeArray),unique(obj.poseArray(1,:)),t, 'spline');
 %             y = interp1(unique(obj.timeArray),unique(obj.poseArray(2,:)),t, 'spline');
 %             th = interp1(unique(obj.timeArray),unique(obj.poseArray(3,:)),t, 'spline');

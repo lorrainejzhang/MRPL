@@ -1,10 +1,12 @@
-classdef controller
+classdef controller < handle
     properties
         oldBackV = 0;
         oldBackW = 0;
         VInt = 0;
         WInt = 0;
         oldT = 0;
+        lastPose;
+        started = false;
     end
     methods
         function [backVTot, backWTot] = feedback(obj, T, traj, enposx,enposy,enposth, V)
@@ -65,6 +67,11 @@ classdef controller
             ki = 0;
             backVTot = kp*backV + kd*backVDer + ki*obj.VInt;
             backWTot = kp*backW + kd*backWDer + ki*obj.WInt;
-        end       
+        end    
+        
+        function initialize(obj, startPose)
+            obj.lastPose = startPose;
+            obj.started = false;
+        end
     end
 end
