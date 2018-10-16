@@ -26,7 +26,7 @@ classdef controller < handle
             rrp = (mat^-1)*([errx;erry]);
             
             %disp(rrp)
-            tau = 3;
+            tau = 2;
             kx = 1/(tau);
             if abs(V) < .1
                 ky = 0;
@@ -57,8 +57,8 @@ classdef controller < handle
                 obj.WInt = sign(obj.WInt) * eiWMax;
             end
             kp = 1; % tau 4, kp 1, kd .2, ki .3
-            kd = .2;  
-            ki = .3;
+            kd = 0; % tau 3, 1, .2 .3  
+            ki = 0;
             backVTot = kp*backV + kd*backVDer + ki*obj.VInt;
             backWTot = kp*backW + kd*backWDer + ki*obj.WInt;
         end    

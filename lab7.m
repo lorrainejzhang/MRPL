@@ -1,8 +1,8 @@
-m = mrplSystem(0);
+m = mrplSystem(1);
 m.executeTrajectoryToAbsPose(.3048, .3048, 0);
 m.executeTrajectoryToAbsPose(-.3048, -.3048, -pi/2);
-m.executeTrajectoryToAbsPose(0, 0, pi/2);
-%m.executeTrajectoryToAbsPose(-.3048*2, -.3048*2, -pi/2);
+m.executeTrajectoryToAbsPose(0, 0, 0);
+%m.executeTrajectoryToAbsPose(-.3048, .3048, pi);
 m.context.robot.shutdown();
 %a = m.ths;
 figure(1);
