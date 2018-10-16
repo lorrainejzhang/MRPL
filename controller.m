@@ -9,17 +9,10 @@ classdef controller < handle
         started = false;
     end
     methods
-        function [backVTot, backWTot] = feedback(obj, T, traj, enposx,enposy,enposth, V)
-            pose = traj.getPoseAtTime(T);
-            x = pose(1);
-            y = pose(2);
-            th = pose(3);
-            %disp(enPose)
-%             disp(x)
-%             disp(enposx)
-            errx = x - enposx;
-            erry = y - enposy;
-            errth = th - enposth;
+        function [backVTot, backWTot] = feedback(obj, x, y, th, enposx,enposy,enposth, V, T)
+            errx = (x - enposx);
+            erry = (y - enposy);
+            errth = (th - enposth);
             %errPoseWorld = pose(errx,erry,errth);
             %disp(errPoseWorld.getPoseVec)
             %transform = errPoseWorld.aToBRot();
@@ -31,8 +24,9 @@ classdef controller < handle
             %disp(mat)
          
             rrp = (mat^-1)*([errx;erry]);
+            
             %disp(rrp)
-            tau = .75;
+            tau = 3;
             kx = 1/(tau);
             if abs(V) < .1
                 ky = 0;
@@ -45,7 +39,7 @@ classdef controller < handle
 %             kth = 0;
             backV = kx*rrp(1);
             backW = ky*rrp(2) + kth * atan2(sin(errth),cos(errth));
-  
+            %fprintf("errx: %f, rrp1: %f, erry: %f, rrp2: %f",errx,rrp(1),erry,rrp(2));
             delTime = T - obj.oldT;
             obj.oldT = T;
             backVDer = (backV - obj.oldBackV) / delTime;
@@ -62,9 +56,9 @@ classdef controller < handle
             if (abs(obj.WInt) > eiWMax)
                 obj.WInt = sign(obj.WInt) * eiWMax;
             end
-            kp = 1;
-            kd = 0;
-            ki = 0;
+            kp = 1; % tau 4, kp 1, kd .2, ki .3
+            kd = .2;  
+            ki = .3;
             backVTot = kp*backV + kd*backVDer + ki*obj.VInt;
             backWTot = kp*backW + kd*backWDer + ki*obj.WInt;
         end    

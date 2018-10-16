@@ -3,7 +3,7 @@ classdef trajectoryFollower < handle
 %         bv = 0;
 %         bw = 0;
         trajectory;
-        cont;
+        cont = controller();
         startPose;
         startTime;
     end
@@ -13,13 +13,13 @@ classdef trajectoryFollower < handle
 %             obj.cont = controller();  
 %         end
         
-        function [] = sendVel(obj, robot, T, traj, enposx,enposy,enposth, goodT, feedbackOn)%, ref)
+        function [] = sendVel(obj, robot, T, traj, x, y, th, enposx,enposy,enposth, goodT, feedbackOn)%, ref)
             %robotModel.W = 0.085;
             V = traj.getVAtTime(T);
             w = traj.getwAtTime(T);
             %disp(enposx)
-            backV = 0; backW = 0;
-            %[backV, backW] = obj.cont.feedback(T, obj.traj, enposx,enposy,enposth, V);
+            %backV = 0; backW = 0;
+            [backV, backW] = obj.cont.feedback(x, y, th, enposx,enposy,enposth, V, T);
 %             disp(backV)
 %             disp(backW)
             backV = feedbackOn * backV;
@@ -37,11 +37,11 @@ classdef trajectoryFollower < handle
             end
             dur = traj.getTrajectoryDuration;
             %dur = ref.getTrajectoryDuration;
-            if (T > dur + 1)
+            if (T > dur)
                 vl = 0;
                 vr = 0;
             end
-
+            %disp(vl)
             robot.sendVelocity(vl,vr);
         end
         

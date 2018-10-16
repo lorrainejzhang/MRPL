@@ -4,7 +4,7 @@ classdef context < handle
         robot;
         goodT;
         maxV = .2;
-        feedbackOn = 0;
+        feedbackOn;
     end
     methods
         function obj = context()

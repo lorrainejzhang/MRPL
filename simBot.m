@@ -31,8 +31,10 @@ classdef simBot < handle
             obj.goodT = obj.goodT + dt;
             obj.oldt = encoderDataTimestamp;
 
-            vecx = obj.robot.encoders.LatestMessage.Vector.X;
-            vecy = obj.robot.encoders.LatestMessage.Vector.Y;
+%             vecx = obj.robot.encoders.LatestMessage.Vector.X;
+%             vecy = obj.robot.encoders.LatestMessage.Vector.Y;
+            vecx = event.Vector.X;
+            vecy = event.Vector.Y;
             dleft = vecx - obj.leftFirst - obj.oldLeft;
             drght = vecy - obj.rghtFirst - obj.oldRght;
             obj.oldLeft = vecx - obj.leftFirst;
