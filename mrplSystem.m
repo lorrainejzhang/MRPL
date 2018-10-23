@@ -21,6 +21,15 @@ classdef mrplSystem < handle
 %            mrpl.executeTrajectory(traj, feedbackOn);
 %         end
 %     end    
+
+    methods (Static = true)
+        function [x y th] = acquisitionPose(x, y, th, robFrontOffset,objFaceOffset,moreOffset)
+            totalOffset = robFrontOffset + objFaceOffset - moreOffset;
+            x = x - totalOffset * cos(th);
+            y = y - totalOffset * sin(th);
+            th = th;
+        end
+    end
     
     methods
         function obj = mrplSystem(feedbackOn)
@@ -70,6 +79,9 @@ classdef mrplSystem < handle
                 %disp(T)
                 pose = traj.getPoseAtTime(T);
                 x = pose(1); y = pose(2); th = pose(3);
+                %disp("here");
+                %disp(obj.oldth);
+                %disp(obj.offx);
                 xi = x*cos(-obj.oldth) + y*sin(-obj.oldth) + obj.offx;
                 yi = -x*sin(-obj.oldth) + y*cos(-obj.oldth) + obj.offy;
                 thi = th + obj.offth;
