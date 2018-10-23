@@ -2,21 +2,21 @@ classdef rangeImage < handle
     properties(Constant)
         % thOffset = atan2(0.024, 0.28); from ex 1?
         
-        maxUsefulRange = 2.0; %m
+        maxUsefulRange = 1%2.0; %m
         minUsefulRange = 0.1; %m
-        maxRangeForTarget = 1.0; %m
+        maxRangeForTarget = 10; %m
         
         sailWidth = 3.8/100; %m
         minNumPixInSail = 3; % Can change
-        boundingBoxDiagError = .02; % Can change
+        boundingBoxDiagError = .2; % Can change, too big!
         maxLambda1 = 1.3; % Can change, not sure what this is?
     end
     
     properties(Access = public)
-        rArray = zeros(360);
-        thArray = zeros(360);
-        xArray = zeros(360);
-        yArray = zeros(360);
+        rArray = zeros(1, 360);
+        thArray = zeros(1, 360);
+        xArray = zeros(1, 360);
+        yArray = zeros(1, 360);
         
         %These are in the [minUsefulRange, maxRangeForTarget] range
         %May not be 360 of them! That's why we've got numGoodPix
@@ -27,37 +27,49 @@ classdef rangeImage < handle
         numGoodPix = 0;
     end
     
-    methods(Access = public)
-        function [x, y, th] = irToXy(i, r)
+    methods (Static = true)
+        function [x, y, th] = irToXy(i, r) 
             th = (-5*pi/180) + (i - 1) * (pi/180); %- obj.thOffset; from ex 1?
             x = r * cos(th);
             y = r * sin(th);
         end
+    end
+    
+    methods
         
-        function obj = rangeImage(xs,ys)
+        function obj = rangeImage(robot)
+            [obj.xArray, obj.yArray, obj.thArray] = lab8(robot);
             for i = 1:360
 %                 r = ranges(i);
-%                 [x, y, th] = obj.irToXy(i, r);
-                x = xs(i); y = ys(i);
+                x = obj.xArray(i);
+                y = obj.yArray(i);
                 r = sqrt(x^2 + y^2);
-                th = (-5*pi/180) + (i - 1) * (pi/180);
-                obj.rArray(i) = r;
-                obj.thArray(i) = th;
-                obj.xArray(i) = x;
-                obj.yArray(i) = y;
-                
-                if (r > obj.minUsefulRange && r < obj.maxRangeForTarget)
+                th = obj.thArray(i);
+%                 [x y th] = irToXy(i, r);
+%                 d = sqrt(x^2 + y^2);
+%                 if (d < .1 || d > .95)
+%                     x = 0; y = 0;
+%                 end
+%                 obj.rArray(i) = r;
+%                 obj.thArray(i) = th;
+%                 obj.xArray(i) = x;
+%                 obj.yArray(i) = y;
+                                
+                if ~(r > obj.maxRangeForTarget || r < obj.minUsefulRange)
+
                     obj.numGoodPix = obj.numGoodPix + 1;
                     obj.goodRArray = [obj.goodRArray, r];
                     obj.goodThArray = [obj.goodThArray, th];
                     obj.goodXArray = [obj.goodXArray, x];
                     obj.goodYArray = [obj.goodYArray, y];
                 end
-            end
+            end 
+            %obj.goodXArray = obj.xArray > obj.minUsefulRange && obj.xArray < obj.maxRangeForTarget;
+
         end
                 
         function [sailCenterX, sailCenterY, sailTh] = findClosestSail(obj)
-            closestSailDist = obj.maxRangeForTarget + 1;
+            closestSailDist = rangeImage.maxRangeForTarget + 1;
             sailCenterX = 0; sailCenterY = 0; sailTh = 0;
             for i = 1:obj.numGoodPix
                 xi = obj.goodXArray(i);
@@ -80,7 +92,6 @@ classdef rangeImage < handle
 %                 disp(x(1:numPixNearby));
 %                 disp(y(1:numPixNearby));
                 
-                disp(i)
                 %Center pix
                 gx = x(1:numPixNearby);
                 gy = y(1:numPixNearby);
@@ -119,8 +130,8 @@ classdef rangeImage < handle
                 
                 %if (lambda(1) < obj.maxLambda) ...
                 if (-1 < obj.maxLambda1 ...
-                   && thisSailDist <= closestSailDist ...
-                   && obj.sailWidth <= diag + obj.boundingBoxDiagError)
+                   && thisSailDist <= closestSailDist)%...
+                   %&& abs(obj.sailWidth - diag) <= obj.boundingBoxDiagError)
                    
 
                     closestSailDist = thisSailDist;
