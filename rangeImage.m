@@ -8,7 +8,7 @@ classdef rangeImage < handle
         
         sailWidth = 3.8/100; %m
         minNumPixInSail = 3; % Can change
-        boundingBoxDiagError = .2; % Can change, too big!
+        boundingBoxDiagError = 3; % Can change, too big!
         maxLambda1 = 1.3; % Can change, not sure what this is?
     end
     
@@ -130,8 +130,8 @@ classdef rangeImage < handle
                 
                 %if (lambda(1) < obj.maxLambda) ...
                 if (-1 < obj.maxLambda1 ...
-                   && thisSailDist <= closestSailDist)%...
-                   %&& abs(obj.sailWidth - diag) <= obj.boundingBoxDiagError)
+                   && thisSailDist <= closestSailDist ...
+                   && abs(obj.sailWidth - diag) <= obj.boundingBoxDiagError)
                    
 
                     closestSailDist = thisSailDist;
