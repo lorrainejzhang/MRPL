@@ -1,9 +1,9 @@
 function [xs, ys, ths] = lab8(robot)
-    robot.startLaser();
+
     pause(3);
 
     r8 = .055;
-    r4 = .0391;
+    r4 = .0391 - 0.0292;
 %     r4 = 0;
         ranges = robot.laser.LatestMessage.Ranges;
         xs = zeros(1,360); ys = zeros(1,360); ths = zeros(1,360);
@@ -19,4 +19,3 @@ function [xs, ys, ths] = lab8(robot)
 
 
     scatter(xs,ys);
-    robot.stopLaser();
