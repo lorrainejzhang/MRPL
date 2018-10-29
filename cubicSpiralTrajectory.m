@@ -500,6 +500,9 @@ classdef cubicSpiralTrajectory < handle
 %             disp(obj.timeArray(1:50))
 %             disp(obj.VArray(1:10))
 %             disp(obj.distArray(1:10))
+%             if t > obj.timeArray(end)
+%                 t = obj.timeArray(end);
+%             end
             x = interp1(obj.timeArray(s:end),obj.poseArray(1,s:end),t,'pchip','extrap');
             y = interp1(obj.timeArray(s:end),obj.poseArray(2,s:end),t,'pchip','extrap');
             th = interp1(obj.timeArray(s:end),obj.poseArray(3,s:end),t,'pchip','extrap');

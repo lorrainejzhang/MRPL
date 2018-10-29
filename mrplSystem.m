@@ -23,9 +23,10 @@ classdef mrplSystem < handle
 %     end    
 
     methods (Static = true)
-        function [x y th] = acquisitionPose(x, y, th, robFrontOffset,objFaceOffset,moreOffset)
-            totalOffset = robFrontOffset + objFaceOffset - moreOffset;
-            x = x - totalOffset * cos(th);
+        function [x, y, th] = acquisitionPose(x, y, th, robFrontOffset,objFaceOffset,moreOffset)
+            totalOffset = robFrontOffset + objFaceOffset;% - moreOffset;
+            totalOffset = totalOffset + 0.07;
+            x = x - totalOffset * cos(th); 
             y = y - totalOffset * sin(th);
             th = th;
         end
@@ -43,16 +44,18 @@ classdef mrplSystem < handle
             obj.x1 = 0; obj.y1 = 0; obj.th1 = 0;
             obj.i = 0;
             size = 10000;
-            obj.xs = zeros(1,size); obj.ys = zeros(1,size);
+            obj.xs = zeros(1,size); obj.ys = zeros(1,size); obj.ths = zeros(1,size);
             obj.enposxs = zeros(1,size); obj.enposys = zeros(1,size);
             obj.enposths = zeros(1,size);
             obj.ts = zeros(1,size);
+            
+            obj.offx = 0; obj.offy = 0; obj.offth = 0; obj.oldth = 0;
             
             %obj.x1 = .3048; obj.y1 = .3048; obj.th1 =  pi/4 + pi/8;
             
         end
         
-        function executeTrajectory(obj, traj, feedbackOn)
+        function executeTrajectory(obj, traj)
             %a = obj.estBot
             %obj.context.robot.encoders.NewMessageFcn=@obj.estBot.listener;
             %dur = traj.getTrajectoryDuration();
@@ -97,7 +100,7 @@ classdef mrplSystem < handle
                 obj.ts(obj.i) = T + obj.follower.startTime;
 
                 obj.follower.sendVel(obj.context.robot, T, traj, xi, yi, thi, ...
-                    obj.estBot.enposx,obj.estBot.enposy,obj.estBot.enposth, obj.estBot.goodT, feedbackOn);
+                    obj.estBot.enposx,obj.estBot.enposy,obj.estBot.enposth, obj.estBot.goodT, obj.context.feedbackOn);
 
                 
                 pause(.05);
@@ -117,7 +120,7 @@ classdef mrplSystem < handle
             traj.planVelocities(obj.context.maxV);
 %             obj.VARR = traj.VArray;
 %             obj.DARR = traj.distArray;
-            obj.executeTrajectory(traj, obj.context.feedbackOn);
+            obj.executeTrajectory(traj);
         end
         
         function executeTrajectoryToAbsPose(obj, x2, y2, th2)

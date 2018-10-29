@@ -7,6 +7,7 @@ classdef controller < handle
         oldT = 0;
         lastPose;
         started = false;
+
     end
     methods
         function [backVTot, backWTot] = feedback(obj, x, y, th, enposx,enposy,enposth, V, T)
@@ -18,7 +19,7 @@ classdef controller < handle
             %transform = errPoseWorld.aToBRot();
             mat = zeros(2,2);
             th = enposth;
-
+            %disp(th)
             mat(1,1) =  cos(th); mat(1,2) = -sin(th);
             mat(2,1) =  sin(th); mat(2,2) =  cos(th);
             %disp(mat)
@@ -61,6 +62,7 @@ classdef controller < handle
             ki = 0;
             backVTot = kp*backV + kd*backVDer + ki*obj.VInt;
             backWTot = kp*backW + kd*backWDer + ki*obj.WInt;
+            
         end    
         
         function initialize(obj, startPose)

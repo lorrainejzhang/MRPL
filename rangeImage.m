@@ -6,9 +6,9 @@ classdef rangeImage < handle
         minUsefulRange = 0.1; %m
         maxRangeForTarget = 10; %m
         
-        sailWidth = 3.8/100; %m
+        sailLen = .1;
         minNumPixInSail = 3; % Can change
-        boundingBoxDiagError = 3; % Can change, too big!
+        boundingBoxDiagError = .02; % Can change, too big!
         maxLambda1 = 1.3; % Can change, not sure what this is?
     end
     
@@ -32,6 +32,22 @@ classdef rangeImage < handle
             th = (-5*pi/180) + (i - 1) * (pi/180); %- obj.thOffset; from ex 1?
             x = r * cos(th);
             y = r * sin(th);
+        end
+        
+        function j = incI(i, m)
+            if (i == m)
+                j = 1;
+            else
+                j = i + 1;
+            end
+        end
+        
+        function j = decI(i, m)
+            if (i == 1)
+                j = m;
+            else
+                j = i - 1;
+            end
         end
     end
     
@@ -62,6 +78,8 @@ classdef rangeImage < handle
                     obj.goodThArray = [obj.goodThArray, th];
                     obj.goodXArray = [obj.goodXArray, x];
                     obj.goodYArray = [obj.goodYArray, y];
+                    %figure(2);
+                    %scatter(obj.goodXArray, obj.goodYArray);
                 end
             end 
             %obj.goodXArray = obj.xArray > obj.minUsefulRange && obj.xArray < obj.maxRangeForTarget;
@@ -71,21 +89,47 @@ classdef rangeImage < handle
         function [sailCenterX, sailCenterY, sailTh] = findClosestSail(obj)
             closestSailDist = rangeImage.maxRangeForTarget + 1;
             sailCenterX = 0; sailCenterY = 0; sailTh = 0;
+            %deb =false;
             for i = 1:obj.numGoodPix
                 xi = obj.goodXArray(i);
                 yi = obj.goodYArray(i);
                 numPixNearby = 0; % Pix within half a sailWidth
                 x = zeros(1,360);
                 y = zeros(1,360);
+                firstCirc = true;
+                prevI = 1;
+%                 if (xi < .35)
+%                     deb = true;
+%                     disp("xi")
+%                     disp(xi)
+%                 end
                 for j = 1:obj.numGoodPix
                     xj = obj.goodXArray(j);
                     yj = obj.goodYArray(j);
-                    if ((xi - xj)^2 + (yi - yj))^(1/2) < obj.sailWidth/2
+
+                    if ((xi - xj)^2 + (yi - yj)^2)^(1/2) < obj.sailLen/2
+                        if (firstCirc)
+                            prevI = rangeImage.decI(j, obj.numGoodPix);
+                            firstCirc = false;
+                        end
                         numPixNearby = numPixNearby + 1;
-                        x(numPixNearby) = xj;
-                        y(numPixNearby) = yj;
+                        x(numPixNearby+1) = xj;
+                        y(numPixNearby+1) = yj;
                     end
+                    x(1) = obj.goodXArray(prevI);
+                    y(1) = obj.goodYArray(prevI);
+%                     if deb
+%                         disp("-----------")
+%                         disp(x(1:numPixNearby+1))
+%                         disp("------------")
+%                         deb = false;
+%                     end
+                     
                 end
+%                 if (deb) 
+%                     fprintf("numpixn %d\n",numPixNearby)
+%                     deb = false;
+%                 end
                 if (numPixNearby < obj.minNumPixInSail)
                     continue;
                 end
@@ -93,6 +137,7 @@ classdef rangeImage < handle
 %                 disp(y(1:numPixNearby));
                 
                 %Center pix
+                numPixNearby = numPixNearby+1;
                 gx = x(1:numPixNearby);
                 gy = y(1:numPixNearby);
                 diag = sqrt((min(gx)-max(gx))^2 + (min(gy)-max(gy))^2);
@@ -122,23 +167,29 @@ classdef rangeImage < handle
                 lambda = eig(Inertia);
                 lambda = sqrt(lambda)*1000.0;
                 
+                
                 xsum = sum(gx); ysum = sum(gy);
                 ixx = sum((gx - xsum).^2);
                 iyy = sum((gy - ysum).^2);
                 ixy = -sum((gx - xsum).*(gy - ysum));
                 thisSailDist = (centerX^2 + centerY^2)^(1/2);
                 
+%                 disp('gi')
+%                 disp(diag)
                 %if (lambda(1) < obj.maxLambda) ...
+                %fprintf("unseen l1 %f, l2 %f, diag %f, cx %f, cy %f, d %f\n",lambda(1),lambda(2),diag,centerX,centerY,thisSailDist)
                 if (-1 < obj.maxLambda1 ...
                    && thisSailDist <= closestSailDist ...
-                   && abs(obj.sailWidth - diag) <= obj.boundingBoxDiagError)
-                   
-
+                   && abs(obj.sailLen - diag) <= obj.boundingBoxDiagError)
+       
+                    %fprintf("l1 %f, l2 %f, diag %f, cx %f, cy %f, d %f\n",lambda(1),lambda(2),diag,centerX,centerY,thisSailDist)
                     closestSailDist = thisSailDist;
+                    
                     sailCenterX = centerX;
                     sailCenterY = centerY;
                     % Compute angle of outward facing normal to line
                     sailTh =  atan2(2*ixy, iyy-ixx)/2.0;
+                    %disp(lambda)
                 end
                 %break
             end
