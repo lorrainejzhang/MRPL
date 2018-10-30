@@ -138,6 +138,7 @@ classdef mrplSystem < handle
             
             obj.executeTrajectoryToRelativePose(x3, y3, th3);
         end
-            
+        
+
    end
 end
