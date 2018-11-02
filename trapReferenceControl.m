@@ -13,6 +13,7 @@ classdef trapReferenceControl < handle
                 obj.vmax = .25;
             else
                 obj.vmax = 2;
+                sf = sf + pi/32; %small offset helps apparently
             end
             obj.oldT = 0;
             obj.s = 0; obj.om = 0;

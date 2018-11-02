@@ -1,7 +1,7 @@
 classdef trajectoryFollower < handle
     properties
-%         bv = 0;
-%         bw = 0;
+        bv = 0;
+        bw = 0;
         trajectory;
         cont = controller();
         startPose;
@@ -13,19 +13,19 @@ classdef trajectoryFollower < handle
 %             obj.cont = controller();  
 %         end
         
-        function [] = sendVel(obj, robot, T, traj, x, y, th, enposx,enposy,enposth, goodT, feedbackOn)%, ref)
-            %robotModel.W = 0.085;
+        function [] = sendVel(obj, robot, T, traj, x, y, th, enposx,enposy,enposth, goodT, feedbackOn, ang)
             V = traj.getVAtTime(T);
             w = traj.getwAtTime(T);
-            %disp(enposx)
-            %backV = 0; backW = 0;
+
             [backV, backW] = obj.cont.feedback(x, y, th, enposx,enposy,enposth, V, T);
-%             disp(backV)
-%             disp(backW)
+            if ang
+                %fprintf("V %f, w %f, backv %f, backw %f\n",V,w,backV,backW);
+                backV = 0; % backV is too high when rotating from the trapezoidal, idk why
+            end
             backV = feedbackOn * backV;
             backW = feedbackOn * backW;
-%             obj.bv = backV;
-%             obj.bw = backW;
+            obj.bv = backV;
+            obj.bw = backW;
             vr = (V + backV) + (robotModel.tread / 2) * (w + backW);
             vl = (V + backV) - (robotModel.tread / 2) * (w + backW);
             
@@ -36,7 +36,6 @@ classdef trajectoryFollower < handle
                 vl = 0;
             end
             dur = traj.getTrajectoryDuration;
-            %dur = ref.getTrajectoryDuration;
             if (T > dur)
                 vl = 0;
                 vr = 0;

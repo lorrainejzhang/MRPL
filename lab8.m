@@ -4,7 +4,8 @@ function [xs, ys, ths] = lab8(robot)
 
     r8 = .055;
     r4 = .0391 - 0.0292;
-    r4 = .0412;
+    r4 = -.005;
+    r5 = 0;
 %     r4 = 0;
         %disp(robot)
     ranges = robot.laser.LatestMessage.Ranges;

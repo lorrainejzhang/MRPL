@@ -8,7 +8,7 @@ classdef mrplSystem < handle
         i;
         xs; ys; ths; ts;
         enposxs; enposys; enposths;
-        oldth; offx; offy; offth;
+        offx; offy; offth;
     end
     
 %     methods (Static = true)        
@@ -23,12 +23,11 @@ classdef mrplSystem < handle
 %     end    
 
     methods (Static = true)
-        function [x, y, th] = acquisitionPose(x, y, th, robFrontOffset,objFaceOffset,moreOffset)
-            totalOffset = robFrontOffset + objFaceOffset;% - moreOffset;
-            totalOffset = totalOffset + 0.07;
+        function [x, y, th] = acquisitionPose(x, y, th, totalOffset)
+%             totalOffset = robFrontOffset + objFaceOffset;% - moreOffset;
+            totalOffset = totalOffset + 0.05;
             x = x - totalOffset * cos(th); 
             y = y - totalOffset * sin(th);
-            th = th;
         end
     end
     
@@ -42,30 +41,17 @@ classdef mrplSystem < handle
             obj.estBot = eBot;
             obj.context = c;
             obj.x1 = 0; obj.y1 = 0; obj.th1 = 0;
+            obj.offx = 0; obj.offy = 0; obj.offth = 0;
             obj.i = 0;
             size = 10000;
             obj.xs = zeros(1,size); obj.ys = zeros(1,size); obj.ths = zeros(1,size);
             obj.enposxs = zeros(1,size); obj.enposys = zeros(1,size);
             obj.enposths = zeros(1,size);
             obj.ts = zeros(1,size);
-            
-            obj.offx = 0; obj.offy = 0; obj.offth = 0; obj.oldth = 0;
-            
-            %obj.x1 = .3048; obj.y1 = .3048; obj.th1 =  pi/4 + pi/8;
-            
         end
         
-        function executeTrajectory(obj, traj)
-            %a = obj.estBot
-            %obj.context.robot.encoders.NewMessageFcn=@obj.estBot.listener;
-            %dur = traj.getTrajectoryDuration();
-           
-%             enposxs = zeros(1,size);
-%             enposys = zeros(1,size);
-            % vs = zeros(1,size);
-            %i = 0;
+        function executeTrajectory(obj, traj, ang)
             first = true;
-            %disp(obj.follower.startTime
             dur = traj.getTrajectoryDuration;
             T = 0;
             while (T < dur)
@@ -82,15 +68,11 @@ classdef mrplSystem < handle
                 %disp(T)
                 pose = traj.getPoseAtTime(T);
                 x = pose(1); y = pose(2); th = pose(3);
-                %disp("here");
-                %disp(obj.oldth);
-                %disp(obj.offx);
-                xi = x*cos(-obj.oldth) + y*sin(-obj.oldth) + obj.offx;
-                yi = -x*sin(-obj.oldth) + y*cos(-obj.oldth) + obj.offy;
+                xi = x*cos(-obj.offth) + y*sin(-obj.offth) + obj.offx;
+                yi = -x*sin(-obj.offth) + y*cos(-obj.offth) + obj.offy;
                 thi = th + obj.offth;
 
                 obj.i = obj.i + 1;
-                %disp(i)
                 obj.xs(obj.i) = xi;
                 obj.ys(obj.i) = yi;
                 obj.ths(obj.i) = thi;
@@ -100,17 +82,12 @@ classdef mrplSystem < handle
                 obj.ts(obj.i) = T + obj.follower.startTime;
 
                 obj.follower.sendVel(obj.context.robot, T, traj, xi, yi, thi, ...
-                    obj.estBot.enposx,obj.estBot.enposy,obj.estBot.enposth, obj.estBot.goodT, obj.context.feedbackOn);
+                    obj.estBot.enposx,obj.estBot.enposy,obj.estBot.enposth, obj.estBot.goodT, obj.context.feedbackOn, ang);
 
                 
                 pause(.05);
             end
-            obj.context.robot.sendVelocity(0,0);
-            %disp("----------------")
-            %obj.context.robot.shutdown();
-%             obj.xx = xs(1:i);
-%             obj.yy = ys(1:i);
-            
+            obj.context.robot.sendVelocity(0,0);            
         end
         
         function executeTrajectoryToRelativePose(obj, x3, y3, th3)
@@ -120,7 +97,7 @@ classdef mrplSystem < handle
             traj.planVelocities(obj.context.maxV);
 %             obj.VARR = traj.VArray;
 %             obj.DARR = traj.distArray;
-            obj.executeTrajectory(traj);
+            obj.executeTrajectory(traj, false);
         end
         
         function executeTrajectoryToAbsPose(obj, x2, y2, th2)
@@ -129,16 +106,26 @@ classdef mrplSystem < handle
             x3 = x3u*cos(-obj.th1) - y3u*sin(-obj.th1);
             y3 = x3u*sin(-obj.th1) + y3u*cos(-obj.th1);
             th3 = th2 - obj.th1;
-            obj.oldth = obj.th1;
-            %obj.context.robot.vel_pub.NumSubscribers = 1;
-            %disp(obj.context.robot.vel_pub)
-            %obj.offx = obj.x1; obj.offy = obj.y1;
+            
             obj.offx = obj.x1; obj.offy = obj.y1; obj.offth = obj.th1;
             obj.x1 = x2; obj.y1 = y2; obj.th1 = th2;
             
             obj.executeTrajectoryToRelativePose(x3, y3, th3);
         end
         
-
+        function executeTrap(obj, line, sf, sgn)
+            if line
+                obj.offx = obj.x1; obj.offy = obj.y1;
+                obj.x1 = obj.x1 - sf * cos(obj.th1);
+                obj.y1 = obj.y1 - sf * sin(obj.th1);
+                t = trapReferenceControl(true, sf, sgn);
+            else
+                obj.offth = obj.th1; 
+                obj.th1 = obj.th1 + sf;
+                obj.th1 = atan2(sin(obj.th1),cos(obj.th1));
+                t = trapReferenceControl(false, sf, sgn);   
+            end
+            obj.executeTrajectory(t, ~line);    
+        end
    end
 end
