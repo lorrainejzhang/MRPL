@@ -8,7 +8,7 @@ lines_p2 = [p2 p3 p4 p1];
 
 % Set up test points
 nPts = 10;
-x1 = -4.0*ones(1,nPts);
+x1 = -2.0*ones(1,nPts);
 x2 = linspace(-2.0,2.0,nPts);
 x3 = 2.0*ones(1,nPts);
 y1 = linspace(0.0,2.0,nPts);
@@ -24,8 +24,8 @@ modelPts = [x1pts ; y1pts ; w1pts];
 dx = -0.05*rand();
 dy = -0.05*rand();
 dt = -0.05+0.2*rand();
-thePose = pose(0.0+dx,0.0+dy,0.0+dt);
+thePose = [0.0+dx,0.0+dy,0.0+dt];
 
 disp([x1 ;y1])
 local = lineMapLocalizer(lines_p1,lines_p2,0.3,0.01,0.0005, [x1;y1]);
-[x, y, th] = local.main()
+[success, outPose] = local.refinePose(thePose,modelPts,400)
