@@ -22,20 +22,18 @@ classdef lineMapLocalizer < handle
      
      methods
      
-         function obj = lineMapLocalizer(lines_p1,lines_p2,gain,errThresh,gradThresh, ptsInRangeImage)
+         function obj = lineMapLocalizer(lines_p1,lines_p2,gain,errThresh,gradThresh)
              % create a lineMapLocalizer
              obj.lines_p1 = lines_p1;
              obj.lines_p2 = lines_p2;
              obj.gain = gain;
              obj.errThresh = errThresh;
              obj.gradThresh = gradThresh;
-             obj.ptsInRangeImage = ptsInRangeImage;
          end
          
          function [x, y, th, success] = main(obj, maxIters, pose)
              options.maxIterations=maxIters;
-             [x0,resnorm,residual,exitflag] = lsqnonlin(@obj.transformedError, pose, -inf, inf, options);
-             pose = x0;
+             [pose,~,~,exitflag] = lsqnonlin(@obj.transformedError, pose, [-inf,-inf,-inf], [inf,inf,inf], options);
              success = (exitflag == 1);
              x = pose(1); y = pose(2); th = pose(3);
          end

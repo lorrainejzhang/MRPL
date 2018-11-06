@@ -17,15 +17,19 @@ classdef robotKeypressDriver < handle
         function drive(robot,vGain)
             % drive the robot
             Vmax = robotKeypressDriver.linVel*vGain;
-            dV = robotKeypressDriver.angVel*robotModel.W*vGain; key = pollKeyboard();
-            
+            dV = robotKeypressDriver.angVel*robotModel.W*vGain; 
+            kh = event.listener(gcf,'KeyPressFcn',@keyboardEventListener);
+            key = pollKeyboard();
+            %disp(key);
             if(key ~= false)
+                disp("key");
                 if(strcmp(key,'uparrow'))
                     disp('up');
                     robot.sendVelocity(Vmax,Vmax);
                 elseif(strcmp(key,'downarrow'))
                     disp('down');
-                    robot.sendVelocity(-Vmax,-Vmax); elseif(strcmp(key,'leftarrow'))
+                    robot.sendVelocity(-Vmax,-Vmax); 
+                elseif(strcmp(key,'leftarrow'))
                     disp('left');
                     robot.sendVelocity(Vmax,Vmax+dV);
                 elseif(strcmp(key,'rightarrow'))
@@ -34,8 +38,8 @@ classdef robotKeypressDriver < handle
                 elseif(strcmp(key,'s'))
                     disp('stop');
                     robot.sendVelocity(0.0,0.0);
-                end;
-            end;
+                end
+            end
         end
     end
     
@@ -53,33 +57,4 @@ classdef robotKeypressDriver < handle
     end
 end
 
-function keyboardEventListener(~,event)
-    %keyboardEventListener Invoked when a keyboard character is pressed.
-    
-    global keypressFrame;
-    global keypressDataReady;
-    global keypressKey;
-    
-    keypressFrame = keypressFrame + 1;
-    keypressDataReady = 1;
-    keypressKey = event.Key;
-end
 
-function res = pollKeyboard()
-%pollKeyboard Waits until the callback says there is new data.
-%   This routine is useful when you want to be able to capture
-%   and respond to a keypress as soon as it arrives.
-%   To use this, execute the following line:
-%   kh = event.listener(gcf,'KeyPressFcn',@keyboardEventListener); % before calling this function.
-    global keypressDataReady;
-    global keypressKey;
-    
-    keyboardDataReadyLast = keypressDataReady;
-    keypressDataReady = 0;
-    if(keyboardDataReadyLast)
-        res = keypressKey;
-        disp('gotOne');
-    else
-        res = false;
-    end
-end
