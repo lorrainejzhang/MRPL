@@ -32,8 +32,11 @@ classdef lineMapLocalizer < handle
              obj.ptsInRangeImage = ptsInRangeImage;
          end
          
-         function [x, y, th] = main(obj)
-             pose = lsqnonlin(@obj.transformedError, [.05,.05,.1]);
+         function [x, y, th, success] = main(obj, maxIters, pose)
+             options.maxIterations=maxIters;
+             [x0,resnorm,residual,exitflag] = lsqnonlin(@obj.transformedError, pose, -inf, inf, options);
+             pose = x0;
+             success = (exitflag == 1);
              x = pose(1); y = pose(2); th = pose(3);
          end
          
@@ -106,19 +109,13 @@ classdef lineMapLocalizer < handle
             ro2 = sqrt(squared);
         end
 
-        
-%         function [err2_Plus0,J] = getJacobian(obj,poseIn,modelPts)
-%         % Computes the gradient of the error function
-% 
-%             2rr2_Plus0 = fitError(obj,poseIn,modelPts);
-% 
-%             eps = 1e-9;
-%             dp = [eps ; 0.0 ; 0.0];
-%             newPose = pose(poseIn.getPose+dp);
-% 
-%             % finish
-% 
-%         end
+     function [success, outPose] = refinePose(obj,inPose,ptsInModelFrame,maxIters)
+            obj.ptsInRangeImage = ptsInModelFrame;
+            [x, y, th, success] = obj.main(maxIters, inPose);
+            outPose = [x,y,th];
+      end
         
      end
+     
+
 end
