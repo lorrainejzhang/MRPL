@@ -17,18 +17,50 @@ classdef lineMapLocalizer < handle
          gain = 0.3;
          errThresh = 0.01;
          gradThresh = 0.0005;
+         ptsInRangeImage;
      end
      
      methods
      
-         function obj = lineMapLocalizer(lines_p1,lines_p2,gain,errThresh,gradThresh)
+         function obj = lineMapLocalizer(lines_p1,lines_p2,gain,errThresh,gradThresh, ptsInRangeImage)
              % create a lineMapLocalizer
              obj.lines_p1 = lines_p1;
              obj.lines_p2 = lines_p2;
              obj.gain = gain;
              obj.errThresh = errThresh;
              obj.gradThresh = gradThresh;
+             obj.ptsInRangeImage = ptsInRangeImage;
          end
+         
+         function [x, y, th] = main(obj)
+             pose = lsqnonlin(@obj.transformedError, [.05,.05,.1]);
+             x = pose(1); y = pose(2); th = pose(3);
+         end
+         
+         
+        function error = transformedError(obj, pose)
+            transformed = obj.transform(pose);
+            error = obj.closestDistanceToLines(transformed);
+            error(error == Inf) = 0;
+            %disp(transformed);
+        end
+        
+        function transformed = transform(obj, pose)
+            x = pose(1);
+            y = pose(2);
+            th = pose(3);
+            transformed = obj.ptsInRangeImage;
+            %disp(transformed);
+            for i = 1:length(transformed)
+                xTemp = transformed(1,i);
+                yTemp = transformed(2,i);
+                %disp(xTemp); disp(yTemp);
+                a = xTemp * cos(th) - yTemp * sin(th) +x;
+                b  = xTemp * sin(th) + yTemp * cos(th)+y;
+                transformed(1,i) =  a;
+                transformed(2,i) = b;
+            end
+        end
          
         function ro2 = closestSquaredDistanceToLines(obj,pi)
         % Find the squared shortest distance from pi to any line
@@ -38,15 +70,15 @@ classdef lineMapLocalizer < handle
             pi = pi(1:2,:);
             r2Array = zeros(size(obj.lines_p1,2),size(pi,2));
             for i = 1:size(obj.lines_p1,2)
-            [r2Array(i,:) , ~] = closestPointOnLineSegment(pi,...
-            obj.lines_p1(:,i),obj.lines_p2(:,i));
+                [r2Array(i,:) , ~] = closestPointOnLineSegment(pi,...
+                obj.lines_p1(:,i),obj.lines_p2(:,i));
             end
             ro2 = min(r2Array,[],1);
         end
         
         function ids = throwOutliers(obj,pose,ptsInModelFrame)
         % Find ids of outliers in a scan.
-            worldPts = pose.bToA()*ptsInModelFrame;
+            worldPts = pose.bToA()*ptsInlFrame;
             r2 = obj.closestSquaredDistanceToLines(worldPts);
             ids = find(r2 > lineMapLocalizer.maxErr*lineMapLocalizer.maxErr);
         end
@@ -69,18 +101,24 @@ classdef lineMapLocalizer < handle
             end
         end
         
-        function [err2_Plus0,J] = getJacobian(obj,poseIn,modelPts)
-        % Computes the gradient of the error function
+        function ro2 = closestDistanceToLines(obj,pi)
+            squared = obj.closestSquaredDistanceToLines(pi);
+            ro2 = sqrt(squared);
+        end
 
-            2rr2_Plus0 = fitError(obj,poseIn,modelPts);
-
-            eps = 1e-9;
-            dp = [eps ; 0.0 ; 0.0];
-            newPose = pose(poseIn.getPose+dp);
-
-            % finish
-
-         end
+        
+%         function [err2_Plus0,J] = getJacobian(obj,poseIn,modelPts)
+%         % Computes the gradient of the error function
+% 
+%             2rr2_Plus0 = fitError(obj,poseIn,modelPts);
+% 
+%             eps = 1e-9;
+%             dp = [eps ; 0.0 ; 0.0];
+%             newPose = pose(poseIn.getPose+dp);
+% 
+%             % finish
+% 
+%         end
         
      end
 end
