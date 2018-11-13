@@ -38,6 +38,7 @@ classdef mrplSystem < handle
             obj.follower = trajectoryFollower();
             eBot = simBot(c.robot);
             c.robot.encoders.NewMessageFcn=@eBot.listener;
+            c.robot.laser.NewMessageFcn = @eBot.laserListener;
             obj.estBot = eBot;
             obj.context = c;
             obj.x1 = 0; obj.y1 = 0; obj.th1 = 0;
@@ -83,8 +84,10 @@ classdef mrplSystem < handle
 
                 obj.follower.sendVel(obj.context.robot, T, traj, xi, yi, thi, ...
                     obj.estBot.enposx,obj.estBot.enposy,obj.estBot.enposth, obj.estBot.goodT, obj.context.feedbackOn, ang);
-
-                
+                o = obj.estBot.startX; oo = obj.estBot.startY;
+                plot(obj.xs(1:obj.i),obj.ys(1:obj.i),obj.enposxs(1:obj.i),obj.enposys(1:obj.i), ...
+                     [0-o,0-o,obj.estBot.l-o] , [obj.estBot.l-oo,0-oo,0-oo] ,'g', ... 
+                     obj.estBot.xMap(1:obj.estBot.len)-o,obj.estBot.yMap(1:obj.estBot.len)-oo,'ro');
                 pause(.05);
             end
             obj.context.robot.sendVelocity(0,0);            
