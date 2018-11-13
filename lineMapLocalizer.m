@@ -33,6 +33,7 @@ classdef lineMapLocalizer < handle
          
          function [x, y, th, success] = main(obj, maxIters, pose)
              options.maxIterations=maxIters;
+             options.Display = 'off';
              [pose,~,~,exitflag] = lsqnonlin(@obj.transformedError, pose, [-inf,-inf,-inf], [inf,inf,inf], options);
              success = (exitflag == 1);
              x = pose(1); y = pose(2); th = pose(3);
@@ -52,7 +53,9 @@ classdef lineMapLocalizer < handle
             th = pose(3);
             transformed = obj.ptsInRangeImage;
             %disp(transformed);
+            %disp("len"); disp(length(transformed));
             for i = 1:length(transformed)
+                %disp(i);
                 xTemp = transformed(1,i);
                 yTemp = transformed(2,i);
                 %disp(xTemp); disp(yTemp);

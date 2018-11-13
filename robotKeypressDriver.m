@@ -18,25 +18,25 @@ classdef robotKeypressDriver < handle
             % drive the robot
             Vmax = robotKeypressDriver.linVel*vGain;
             dV = robotKeypressDriver.angVel*robotModel.W*vGain; 
-            kh = event.listener(gcf,'KeyPressFcn',@keyboardEventListener);
+            %kh = event.listener(gcf,'KeyPressFcn',@keyboardEventListener);
             key = pollKeyboard();
             %disp(key);
             if(key ~= false)
-                disp("key");
+                %disp("key");
                 if(strcmp(key,'uparrow'))
-                    disp('up');
+                    %disp('up');
                     robot.sendVelocity(Vmax,Vmax);
                 elseif(strcmp(key,'downarrow'))
-                    disp('down');
+                    %disp('down');
                     robot.sendVelocity(-Vmax,-Vmax); 
                 elseif(strcmp(key,'leftarrow'))
-                    disp('left');
+                    %disp('left');
                     robot.sendVelocity(Vmax,Vmax+dV);
                 elseif(strcmp(key,'rightarrow'))
-                    disp('right');
+                    %disp('right');
                     robot.sendVelocity(Vmax+dV,Vmax);
                 elseif(strcmp(key,'s'))
-                    disp('stop');
+                    %disp('stop');
                     robot.sendVelocity(0.0,0.0);
                 end
             end
