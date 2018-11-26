@@ -34,6 +34,7 @@ classdef lineMapLocalizer < handle
          function [x, y, th, success] = main(obj, maxIters, pose)
              options.maxIterations=maxIters;
              options.Display = 'off';
+             options.Algorithm = 'levenberg-marquardt';
              [pose,~,~,exitflag] = lsqnonlin(@obj.transformedError, pose, [-inf,-inf,-inf], [inf,inf,inf], options);
              success = (exitflag == 1);
              x = pose(1); y = pose(2); th = pose(3);
