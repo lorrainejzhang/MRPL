@@ -1,6 +1,6 @@
 clear;
 clear classes;
-sys = mrplSystem(1);
+sys = mrplSystem(1, 0); % No map!
 sys.context.robot.startLaser()
 for i = 1:1
     

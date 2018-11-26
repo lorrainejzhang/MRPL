@@ -1,4 +1,4 @@
-sys = mrplSystem(1);
+sys = mrplSystem(1, 1); % Uses map!
 sys.context.robot.startLaser();
 outPose = [15*0.0254,9*0.0254,pi()/2.0];
 outPose = [.3048,.3048,pi/2];

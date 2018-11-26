@@ -1,6 +1,6 @@
 warning('off', 'all');
 
-m = mrplSystem(1);
+m = mrplSystem(1, 1); % Uses map!
 m.context.robot.startLaser();
 pause(.5);
 

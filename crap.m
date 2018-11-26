@@ -1,7 +1,6 @@
-
 %clear;
 %clear classes;
-sys = mrplSystem(1, 0);
+sys = mrplSystem(1, 0); % No map!
 sys.context.robot.forksDown();
 sys.context.robot.startLaser();
 

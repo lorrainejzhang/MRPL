@@ -1,4 +1,4 @@
-m = mrplSystem(1);
+m = mrplSystem(1, 0); % No map!
 m.executeTrajectoryToAbsPose(.3048, .3048, 0);
 m.executeTrajectoryToAbsPose(-.3048, -.3048, -pi/2);
 m.executeTrajectoryToAbsPose(0, 0, 0);
