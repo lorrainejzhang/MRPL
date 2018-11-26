@@ -32,13 +32,15 @@ classdef mrplSystem < handle
     end
     
     methods
-        function obj = mrplSystem(feedbackOn)
+        function obj = mrplSystem(feedbackOn, mapOn)
             c = context();
             c.feedbackOn = feedbackOn;
             obj.follower = trajectoryFollower();
             eBot = simBot(c.robot);
             c.robot.encoders.NewMessageFcn=@eBot.listener;
-            c.robot.laser.NewMessageFcn = @eBot.laserListener;
+            if (mapOn)
+                c.robot.laser.NewMessageFcn = @eBot.laserListener;
+            end
             obj.estBot = eBot;
             obj.context = c;
             obj.x1 = 0; obj.y1 = 0; obj.th1 = 0;

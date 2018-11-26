@@ -1,7 +1,7 @@
 
 %clear;
 %clear classes;
-sys = mrplSystem(1);
+sys = mrplSystem(1, 0);
 sys.context.robot.forksDown();
 sys.context.robot.startLaser();
 
@@ -57,3 +57,5 @@ for aa = 1 : 2
     pause(10);
 
 end
+
+sys.context.robot.stopLaser();
