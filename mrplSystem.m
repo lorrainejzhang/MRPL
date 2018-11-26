@@ -10,17 +10,6 @@ classdef mrplSystem < handle
         enposxs; enposys; enposths;
         offx; offy; offth;
     end
-    
-%     methods (Static = true)        
-%         function mrpl = executeTrajectoryToRelativePose(x, y, th, maxV, feedbackOn)
-%            %Have to call cubicSpiralTrajectory.makeLookupTable(100);
-%            traj = cubicSpiralTrajectory.planTrajectory(x, y, th, 1);
-%            traj.planVelocities(maxV);
-%            mrpl = mrplSystem;
-%            mrpl.follower = trajectoryFollower();
-%            mrpl.executeTrajectory(traj, feedbackOn);
-%         end
-%     end    
 
     methods (Static = true)
         function [x, y, th] = acquisitionPose(x, y, th, totalOffset)
@@ -38,9 +27,7 @@ classdef mrplSystem < handle
             obj.follower = trajectoryFollower();
             eBot = simBot(c.robot);
             c.robot.encoders.NewMessageFcn=@eBot.listener;
-            if (mapOn)
-                c.robot.laser.NewMessageFcn = @eBot.laserListener;
-            end
+            if mapOn: c.robot.laser.NewMessageFcn = @eBot.laserListener;
             obj.estBot = eBot;
             obj.context = c;
             obj.x1 = 0; obj.y1 = 0; obj.th1 = 0;
@@ -132,5 +119,48 @@ classdef mrplSystem < handle
             end
             obj.executeTrajectory(t, ~line);    
         end
-   end
+        
+        function pickDropObject(obj)
+            obj.context.robot.forksDown();
+            obj.context.robot.startLaser();
+
+            a = true;    
+            for aa = 1 : 2
+                a = false;
+                range = rangeImage(sys.context.robot);
+                scatter(range.xArray, range.yArray)
+                [xo, yo, tho] = range.findClosestSail();
+                pause(1);
+
+                [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, .15);
+
+                xi = x*cos(-sys.th1) + y*sin(-sys.th1) + sys.x1;
+                yi = -x*sin(-sys.th1) + y*cos(-sys.th1) + sys.y1;
+                thi = th + sys.th1;
+                sys.executeTrajectoryToAbsPose(xi,yi,thi);
+                pause(1);
+
+                range = rangeImage(obj.context.robot);
+                scatter(range.xArray, range.yArray)
+                [xo, yo, tho] = range.findClosestSail();
+                pause(1);
+
+                [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, 0);
+                xi = x*cos(-sys.th1) + y*sin(-sys.th1) + sys.x1;
+                yi = -x*sin(-sys.th1) + y*cos(-sys.th1) + sys.y1;
+                thi = th + sys.th1;
+                obj.executeTrajectoryToAbsPose(xi,yi,thi);
+                pause(1);
+
+                obj.context.robot.forksUp();
+                pause(1);
+                obj.context.robot.forksDown();
+                pause(1);
+                sys.executeTrap(true, .15, -1);
+                sys.executeTrap(false, pi, 1);
+                pause(10);
+
+            end
+        end
+    end
 end
