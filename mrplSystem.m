@@ -156,8 +156,8 @@ classdef mrplSystem < handle
                 pause(1);
                 obj.context.robot.forksDown();
                 pause(1);
-                sys.executeTrap(true, .15, -1);
-                sys.executeTrap(false, pi, 1);
+                obj.executeTrap(true, .15, -1);
+                obj.executeTrap(false, pi, 1);
                 pause(10);
 
             end
