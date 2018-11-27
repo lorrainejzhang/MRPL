@@ -54,7 +54,7 @@ classdef mrplSystem < handle
 %             obj.x1 = x0; obj.y1 = y0; obj.th1 = th0;
 %             x = x0 - obj.x1;
 %             y = y0 - obj.y1;
-%            th = atan2(sin(th), cos(th));
+            th = atan2(sin(th), cos(th));
         end
         
         function [x, y, th] = relToAbs(obj, x0, y0,th0)
