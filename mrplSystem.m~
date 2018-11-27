@@ -154,28 +154,28 @@ classdef mrplSystem < handle
 %                 obj.executeTrap(false, th0, 1);
 %                 tho = 0;
 %             end
-            if pick
-                [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, .15);
+            [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, .15);
 
-                xi = x*cos(-obj.th1) + y*sin(-obj.th1) + obj.x1;
-                yi = -x*sin(-obj.th1) + y*cos(-obj.th1) + obj.y1;
-                thi = th + obj.th1;
-                obj.executeTrajectoryToAbsPose(xi,yi,thi);
-                pause(1);
-            
-                range = rangeImage(obj.context.robot);
-                scatter(range.xArray, range.yArray)
-                [xo, yo, tho] = range.findClosestSail();
-                pause(1);
-            end
-            
-            [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, 0);
             xi = x*cos(-obj.th1) + y*sin(-obj.th1) + obj.x1;
             yi = -x*sin(-obj.th1) + y*cos(-obj.th1) + obj.y1;
             thi = th + obj.th1;
             obj.executeTrajectoryToAbsPose(xi,yi,thi);
             pause(1);
             
+            if pick
+                range = rangeImage(obj.context.robot);
+                scatter(range.xArray, range.yArray)
+                [xo, yo, tho] = range.findClosestSail();
+                pause(1);
+            end
+                
+            [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, 0);
+            xi = x*cos(-obj.th1) + y*sin(-obj.th1) + obj.x1;
+            yi = -x*sin(-obj.th1) + y*cos(-obj.th1) + obj.y1;
+            thi = th + obj.th1;
+            obj.executeTrajectoryToAbsPose(xi,yi,thi);
+            pause(1);
+
             if pick 
                 obj.context.robot.forksUp();
             else

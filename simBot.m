@@ -27,8 +27,8 @@ classdef simBot < handle
             obj.goodT = 0;
             l = 4*.3048;
             obj.l = l;
-            lines_p1 = [[0;l] [0;0]];
-            lines_p2 = [[0;0] [l;0]];
+            lines_p1 = [[0;l] [0;0] [l;0]];
+            lines_p2 = [[0;0] [l;0] [l;l]];
             obj.local = lineMapLocalizer(lines_p1,lines_p2,0.3,0.01,0.0005);
             obj.lines_p1 = lines_p1;
             obj.lines_p2 = lines_p2;

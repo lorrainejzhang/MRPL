@@ -2,19 +2,18 @@
 
 warning('off', 'all');
 
-% (pickPose, dropPose)
-pickAndDropList = {[3.5*.3048, -1*.3048, pi()], [0.5*.3048, 1.75*.3048, 0], ...
-                   [3.5*.3048, -2*.3048, pi()], [0.5*.3048, 2.5*.3048, 0], ...
-                   [3.5*.3048, -3*.3048, pi()], [0.5*.3048, 3*.3048, 0]};
+pickAndDropList = {[3.5*.3048, -1*.3048, 0], [0.5*.3048, -1.75*.3048, pi], ...
+                   [3.5*.3048, -2*.3048, 0], [0.5*.3048, -2.5*.3048, pi], ...
+                   [3.5*.3048, -3*.3048, 0], [0.5*.3048, -3*.3048, pi]};
+               
+%inOrder = true; % pick and drop from order or closest
 
-inOrder = true; % pick and drop from order or closest
-
-m = mrplSystem(1, 0); % Uses map!
+m = mrplSystem(0, 0); % Feedback on, map on
 m.context.robot.startLaser();
 pause(.5);
+%m.executeTrap(false, pi, 1); % Spin around
 for i = 1:6
     pose = pickAndDropList{i};
-    disp(pose);
     x0 = pose(1);
     y0 = pose(2);
     th0 = pose(3);
@@ -24,6 +23,7 @@ for i = 1:6
         m.pickDropObject(false, x0, y0, th0);
     end
 end
+m.context.robot.startLaser();
 m.context.robot.shutdown();
 % 
 % pickPose = zeros(1,3);
