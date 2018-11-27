@@ -45,7 +45,7 @@ classdef mrplSystem < handle
         function [x, y, th] = absToRel(obj, x0, y0, th0)
             x = x0 - obj.x1;
             y = y0 - obj.y1;
-            th = atan2(sin(th0 - obj.th0), cos(th0 - obj.th0));
+            th = atan2(sin(th0 - obj.th1), cos(th0 - obj.th1));
         end
         
         function [x, y, th] = relToAbs(obj, x0, y0,th0)
@@ -136,21 +136,23 @@ classdef mrplSystem < handle
         
         function pickDropObject(obj, pick, x0, y0, th0)
             % absolute input pose
+            % pick = true for pickup, pick = false for dropoff
             if pick
                 obj.context.robot.forksDown();
             end
-            [xo, yo, tho] = absToRel(x0, y0, th0);
+            [xo, yo, tho] = obj.absToRel(x0, y0, th0);
             if th0 > pi/2
                 obj.executeTrap(false, th0, 1);
                 tho = 0;
             end
             [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, .15);
 
-            xi = x*cos(-sys.th1) + y*sin(-sys.th1) + sys.x1;
-            yi = -x*sin(-sys.th1) + y*cos(-sys.th1) + sys.y1;
-            thi = th + sys.th1;
-            sys.executeTrajectoryToAbsPose(xi,yi,thi);
+            xi = x*cos(-obj.th1) + y*sin(-obj.th1) + obj.x1;
+            yi = -x*sin(-obj.th1) + y*cos(-obj.th1) + obj.y1;
+            thi = th + obj.th1;
+            obj.executeTrajectoryToAbsPose(xi,yi,thi);
             pause(1);
+            
 
             range = rangeImage(obj.context.robot);
             scatter(range.xArray, range.yArray)
@@ -158,9 +160,9 @@ classdef mrplSystem < handle
             pause(1);
 
             [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, 0);
-            xi = x*cos(-sys.th1) + y*sin(-sys.th1) + sys.x1;
-            yi = -x*sin(-sys.th1) + y*cos(-sys.th1) + sys.y1;
-            thi = th + sys.th1;
+            xi = x*cos(-obj.th1) + y*sin(-obj.th1) + obj.x1;
+            yi = -x*sin(-obj.th1) + y*cos(-obj.th1) + obj.y1;
+            thi = th + obj.th1;
             obj.executeTrajectoryToAbsPose(xi,yi,thi);
             pause(1);
 
