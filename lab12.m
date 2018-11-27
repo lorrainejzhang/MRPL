@@ -30,8 +30,10 @@ while (~isempty (pickAndDropList))
         pickPose, dropPose = pickAndDropList(j);
     end
     pickAndDropList(j) = 0; % delete from list
-    
-    % do pickDropObject stuff!
+    x0, y0, th0 = pickPose;
+    x1, y1, th1 = dropPose;
+    m.pickDropObject(true, x0, y0, th0);
+    m.pickDropObject(false, x1, y1, th1);
     
 end
 
