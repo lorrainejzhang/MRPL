@@ -134,9 +134,11 @@ classdef mrplSystem < handle
             obj.executeTrajectory(t, ~line);    
         end
         
-        function pickDropObject(obj, x0, y0, th0)
+        function pickDropObject(obj, pick, x0, y0, th0)
             % absolute input pose
-            obj.context.robot.forksDown();
+            if pick
+                obj.context.robot.forksDown();
+            end
             [xo, yo, tho] = absToRel(x0, y0, th0);
             if th0 > pi/2
                 obj.executeTrap(false, th0, 1);
@@ -162,7 +164,11 @@ classdef mrplSystem < handle
             obj.executeTrajectoryToAbsPose(xi,yi,thi);
             pause(1);
 
-            obj.context.robot.forksUp();
+            if pick 
+                obj.context.robot.forksUp();
+            else
+                obj.context.robot.forksDown();
+            end
             pause(1);
             obj.executeTrap(true, .15, -1);
             obj.executeTrap(false, pi, 1);
