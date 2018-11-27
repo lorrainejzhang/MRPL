@@ -27,9 +27,7 @@ classdef mrplSystem < handle
             obj.follower = trajectoryFollower();
             eBot = simBot(c.robot);
             c.robot.encoders.NewMessageFcn=@eBot.listener;
-            if (mapOn)
-                c.robot.laser.NewMessageFcn = @eBot.laserListener;
-            end
+            if mapOn: c.robot.laser.NewMessageFcn = @eBot.laserListener;
             obj.estBot = eBot;
             obj.context = c;
             obj.x1 = 0; obj.y1 = 0; obj.th1 = 0;
@@ -40,6 +38,18 @@ classdef mrplSystem < handle
             obj.enposxs = zeros(1,size); obj.enposys = zeros(1,size);
             obj.enposths = zeros(1,size);
             obj.ts = zeros(1,size);
+        end
+        
+        function [x, y, th] = absToRel(obj, x0, y0, th0)
+            x = x0 - obj.x1;
+            y = y0 - obj.y1;
+            th = atan2(sin(th0 - obj.th0), cos(th0 - obj.th0));
+        end
+        
+        function [x, y, th] = relToAbs(obj, x0, y0,th0)
+            x = x0 + obj.x1;
+            y = y0 + obj.y1;
+            th = atan2(sin(th0 + obj.th0), cos(th0 + obj.th0));
         end
         
         function executeTrajectory(obj, traj, ang)
@@ -122,47 +132,39 @@ classdef mrplSystem < handle
             obj.executeTrajectory(t, ~line);    
         end
         
-        function pickDropObject(obj)
+        function pickDropObject(obj, x0, y0, th0)
+            % absolute input pose
             obj.context.robot.forksDown();
-            obj.context.robot.startLaser();
-
-            a = true;    
-            for aa = 1 : 2
-                a = false;
-                range = rangeImage(sys.context.robot);
-                scatter(range.xArray, range.yArray)
-                [xo, yo, tho] = range.findClosestSail();
-                pause(1);
-
-                [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, .15);
-
-                xi = x*cos(-sys.th1) + y*sin(-sys.th1) + sys.x1;
-                yi = -x*sin(-sys.th1) + y*cos(-sys.th1) + sys.y1;
-                thi = th + sys.th1;
-                sys.executeTrajectoryToAbsPose(xi,yi,thi);
-                pause(1);
-
-                range = rangeImage(obj.context.robot);
-                scatter(range.xArray, range.yArray)
-                [xo, yo, tho] = range.findClosestSail();
-                pause(1);
-
-                [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, 0);
-                xi = x*cos(-sys.th1) + y*sin(-sys.th1) + sys.x1;
-                yi = -x*sin(-sys.th1) + y*cos(-sys.th1) + sys.y1;
-                thi = th + sys.th1;
-                obj.executeTrajectoryToAbsPose(xi,yi,thi);
-                pause(1);
-
-                obj.context.robot.forksUp();
-                pause(1);
-                obj.context.robot.forksDown();
-                pause(1);
-                obj.executeTrap(true, .15, -1);
-                obj.executeTrap(false, pi, 1);
-                pause(10);
-
+            [xo, yo, tho] = absToRel(x0, y0, th0);
+            if th0 > pi/2
+                obj.executeTrap(false, th0, 1);
+                tho = 0;
             end
+            [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, .15);
+
+            xi = x*cos(-sys.th1) + y*sin(-sys.th1) + sys.x1;
+            yi = -x*sin(-sys.th1) + y*cos(-sys.th1) + sys.y1;
+            thi = th + sys.th1;
+            sys.executeTrajectoryToAbsPose(xi,yi,thi);
+            pause(1);
+
+            range = rangeImage(obj.context.robot);
+            scatter(range.xArray, range.yArray)
+            [xo, yo, tho] = range.findClosestSail();
+            pause(1);
+
+            [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, 0);
+            xi = x*cos(-sys.th1) + y*sin(-sys.th1) + sys.x1;
+            yi = -x*sin(-sys.th1) + y*cos(-sys.th1) + sys.y1;
+            thi = th + sys.th1;
+            obj.executeTrajectoryToAbsPose(xi,yi,thi);
+            pause(1);
+
+            obj.context.robot.forksUp();
+            pause(1);
+            obj.executeTrap(true, .15, -1);
+            obj.executeTrap(false, pi, 1);
+            pause(1);
         end
     end
 end
