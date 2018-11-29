@@ -25,7 +25,8 @@ classdef mrplSystem < handle
             c = context();
             c.feedbackOn = feedbackOn;
             obj.follower = trajectoryFollower();
-            eBot = simBot(c.robot);
+            obj.x1 = 0.75*0.3048; obj.y1 = -0.75*0.3048; obj.th1 = 0;
+            eBot = simBot(c.robot, obj.x1, obj.y1, obj.th1);
             c.robot.encoders.NewMessageFcn=@eBot.listener;
             if mapOn
                 c.robot.laser.NewMessageFcn = @eBot.laserListener;
@@ -33,7 +34,7 @@ classdef mrplSystem < handle
             obj.estBot = eBot;
             obj.context = c;
             % STUFF HERE
-            obj.x1 = 0.75*0.3048; obj.y1 = -0.75*0.3048; obj.th1 = 0;
+%             obj.x1 = 0; obj.y1 = 0; obj.th1 = 0;
             obj.offx = 0; obj.offy = 0; obj.offth = 0;
             obj.i = 0;
             size = 10000;
