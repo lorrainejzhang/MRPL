@@ -9,11 +9,12 @@ classdef simBot < handle
         local;
         gain;
         startX; startY; startTh;
+        absStartX; absStartY; absStartTh;
         first;
         xMap; yMap; len;
     end
     methods
-        function obj = simBot(robot)
+        function obj = simBot(robot, absStartX, absStartY, absStartTh)
             obj.robot = robot;
             obj.leftFirst = robot.encoders.LatestMessage.Vector.X;
             obj.rghtFirst = robot.encoders.LatestMessage.Vector.Y;
@@ -33,6 +34,9 @@ classdef simBot < handle
             obj.lines_p1 = lines_p1;
             obj.lines_p2 = lines_p2;
             obj.gain = .1;
+            obj.absStartX = absStartX;
+            obj.absStartY = absStartY;
+            obj.absStartTh = absStartTh;
             obj.first = true;
             obj.xMap = zeros(1,1000); obj.yMap = zeros(1,1000); obj.len = 1;
         end
@@ -97,7 +101,7 @@ classdef simBot < handle
 
                 x = outPose(1); y = outPose(2); th = outPose(3);
                 if obj.first
-                    obj.startX = x; obj.startY = y; obj.startTh = th;
+                    obj.startX = obj.absStartX + x; obj.startY = obj.absStartY + y; obj.startTh = obj.absStartTh + th;
                     obj.first = false;
                 end
                 %xArrWorld = zeros(1,length(gx));
