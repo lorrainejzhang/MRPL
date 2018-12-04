@@ -35,7 +35,7 @@ classdef mrplSystem < handle
             obj.context = c;
             % STUFF HERE
 %             obj.x1 = 0; obj.y1 = 0; obj.th1 = 0;
-            obj.offx = 0; obj.offy = 0; obj.offth = 0;
+            obj.offx = obj.x1; obj.offy = obj.y1; obj.offth = obj.th1;
             obj.i = 0;
             size = 10000;
             obj.xs = zeros(1,size); obj.ys = zeros(1,size); obj.ths = zeros(1,size);
