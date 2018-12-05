@@ -44,24 +44,31 @@ classdef mrplSystem < handle
             obj.ts = zeros(1,size);
         end
         
-        function [x, y, th] = absToRel(obj, x0, y0, th0)
-            x3u = x0 - obj.x1;
-            y3u = y0 - obj.y1;
-            x = x3u*cos(-obj.th1) - y3u*sin(-obj.th1);
-            y = x3u*sin(-obj.th1) + y3u*cos(-obj.th1);
-            th = th0 - obj.th1;
-            disp(th);
-%             obj.offx = obj.x1; obj.offy = obj.y1; obj.offth = obj.th1;
-%             obj.x1 = x0; obj.y1 = y0; obj.th1 = th0;
-%             x = x0 - obj.x1;
-%             y = y0 - obj.y1;
-            th = atan2(sin(th), cos(th));
+        function [x3, y3, th3] = absToRel(obj, x2, y2, th2)
+%             x3u = x0 - obj.x1;
+%             y3u = y0 - obj.y1;
+%             x = x3u*cos(-obj.th1) - y3u*sin(-obj.th1);
+%             y = x3u*sin(-obj.th1) + y3u*cos(-obj.th1);
+%             th = th0 - obj.th1;
+%             disp(th);
+% %             obj.offx = obj.x1; obj.offy = obj.y1; obj.offth = obj.th1;
+% %             obj.x1 = x0; obj.y1 = y0; obj.th1 = th0;
+% %             x = x0 - obj.x1;
+% %             y = y0 - obj.y1;
+%             th = atan2(sin(th), cos(th));
+            x3u = x2 - obj.x1;
+            y3u = y2 - obj.y1;
+            x3 = x3u*cos(-obj.th1) - y3u*sin(-obj.th1);
+            y3 = x3u*sin(-obj.th1) + y3u*cos(-obj.th1);
+            th3 = th2 - obj.th1;
+            th3 = atan2(sin(th3),cos(th3));
+            
         end
         
         function [x, y, th] = relToAbs(obj, x0, y0,th0)
-            x = x0 + obj.x1;
-            y = y0 + obj.y1;
-            th = atan2(sin(th0 + obj.th0), cos(th0 + obj.th0));
+            x = x0*cos(-obj.th1) + y0*sin(-obj.th1) + obj.x1;
+            y = -x0*sin(-obj.th1) + y0*cos(-obj.th1) + obj.y1;
+            th = th0 + obj.th1;
         end
         
         function executeTrajectory(obj, traj, ang)
@@ -82,9 +89,13 @@ classdef mrplSystem < handle
                 %disp(T)
                 pose = traj.getPoseAtTime(T);
                 x = pose(1); y = pose(2); th = pose(3);
-                xi = x*cos(-obj.offth) + y*sin(-obj.offth) + obj.offx;
-                yi = -x*sin(-obj.offth) + y*cos(-obj.offth) + obj.offy;
-                thi = th + obj.offth;
+%                 xi = x*cos(-obj.offth) + y*sin(-obj.offth) + obj.offx;
+%                 yi = -x*sin(-obj.offth) + y*cos(-obj.offth) + obj.offy;
+%                 thi = th + obj.offth;
+%                 
+                xi = x*cos(-obj.th1) + y*sin(-obj.th1) + obj.x1;
+                yi = -x*sin(-obj.th1) + y*cos(-obj.th1) + obj.y1;
+                thi = th + obj.th1;
 
                 obj.i = obj.i + 1;
                 obj.xs(obj.i) = xi;
@@ -114,6 +125,10 @@ classdef mrplSystem < handle
 %             obj.VARR = traj.VArray;
 %             obj.DARR = traj.distArray;
             obj.executeTrajectory(traj, false);
+            
+            [x2, y2, th2] = obj.relToAbs(x3, y3, th3);
+            obj.offx = obj.x1; obj.offy = obj.y1; obj.offth = obj.th1;
+            obj.x1 = x2; obj.y1 = y2; obj.th1 = th2;
         end
         
         function executeTrajectoryToAbsPose(obj, x2, y2, th2)
@@ -131,17 +146,20 @@ classdef mrplSystem < handle
         
         function executeTrap(obj, line, sf, sgn)
             if line
-                obj.offx = obj.x1; obj.offy = obj.y1;
+                t = trapReferenceControl(true, sf, sgn);
+                obj.executeTrajectory(t, ~line);
+                %obj.offx = obj.x1; obj.offy = obj.y1;
                 obj.x1 = obj.x1 - sf * cos(obj.th1);
                 obj.y1 = obj.y1 - sf * sin(obj.th1);
-                t = trapReferenceControl(true, sf, sgn);
             else
-                obj.offth = obj.th1; 
+                t = trapReferenceControl(false, sf, sgn);
+                obj.executeTrajectory(t, ~line);
+                %obj.offth = obj.th1;
                 obj.th1 = obj.th1 + sf;
                 obj.th1 = atan2(sin(obj.th1),cos(obj.th1));
-                t = trapReferenceControl(false, sf, sgn);   
+                
             end
-            obj.executeTrajectory(t, ~line);    
+            %obj.executeTrajectory(t, ~line);    
         end
         
         function pickDropObject(obj, pick, x0, y0, th0)
@@ -151,31 +169,26 @@ classdef mrplSystem < handle
                 obj.context.robot.forksDown();
             end
             [xo, yo, tho] = obj.absToRel(x0, y0, th0);
-%             if abs(th0) > pi/2
-%                 obj.executeTrap(false, th0, 1);
-%                 tho = 0;
-%             end
+
             if pick
                 [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, .15);
-
-                xi = x*cos(-obj.th1) + y*sin(-obj.th1) + obj.x1;
-                yi = -x*sin(-obj.th1) + y*cos(-obj.th1) + obj.y1;
-                thi = th + obj.th1;
-                obj.executeTrajectoryToAbsPose(xi,yi,thi);
+                obj.executeTrajectoryToRelativePose(x,y,th);
                 pause(1);
+                
             
                 range = rangeImage(obj.context.robot);
                 scatter(range.xArray, range.yArray)
                 [xo, yo, tho] = range.findClosestSail();
+                obj.executeTrajectoryToRelativePose(xo,yo,tho);
+                
+                pause(1);
+            
+            else
+                disp([xo, yo, tho]); 
+                obj.executeTrajectoryToRelativePose(xo,yo,tho);
                 pause(1);
             end
             
-            [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, 0);
-            xi = x*cos(-obj.th1) + y*sin(-obj.th1) + obj.x1;
-            yi = -x*sin(-obj.th1) + y*cos(-obj.th1) + obj.y1;
-            thi = th + obj.th1;
-            obj.executeTrajectoryToAbsPose(xi,yi,thi);
-            pause(1);
             
             if pick 
                 obj.context.robot.forksUp();
@@ -185,8 +198,8 @@ classdef mrplSystem < handle
             pause(1);
             obj.executeTrap(true, .15, -1);
             obj.executeTrap(false, pi, 1);
-            disp([obj.x1, obj.y1, obj.th1]);
-            disp([obj.offx, obj.offy, obj.offth]);
+%             disp([obj.x1, obj.y1, obj.th1]);
+%             disp([obj.offx, obj.offy, obj.offth]);
             pause(1);
         end
     end
