@@ -25,7 +25,7 @@ classdef mrplSystem < handle
             c = context();
             c.feedbackOn = feedbackOn;
             obj.follower = trajectoryFollower();
-            obj.x1 = 0.75*0.3048; obj.y1 = -0.75*0.3048; obj.th1 = 0;
+            obj.x1 = 0.75*0.3048; obj.y1 = 0.75*0.3048; obj.th1 = pi/2;
             eBot = simBot(c.robot, obj.x1, obj.y1, obj.th1);
             c.robot.encoders.NewMessageFcn=@eBot.listener;
             if mapOn
@@ -96,7 +96,7 @@ classdef mrplSystem < handle
                 xi = x*cos(-obj.th1) + y*sin(-obj.th1) + obj.x1;
                 yi = -x*sin(-obj.th1) + y*cos(-obj.th1) + obj.y1;
                 thi = th + obj.th1;
-
+                %fprintf("xi %f, yi %f, thi %f\n",xi,yi,thi);
                 obj.i = obj.i + 1;
                 obj.xs(obj.i) = xi;
                 obj.ys(obj.i) = yi;
@@ -110,8 +110,10 @@ classdef mrplSystem < handle
                     obj.estBot.enposx,obj.estBot.enposy,obj.estBot.enposth, obj.estBot.goodT, obj.context.feedbackOn, ang);
                 o = obj.estBot.startX; oo = obj.estBot.startY;
                 plot(obj.xs(1:obj.i),obj.ys(1:obj.i),obj.enposxs(1:obj.i),obj.enposys(1:obj.i), ...
-                     [0-o,0-o,obj.estBot.l-o] , [obj.estBot.l-oo,0-oo,0-oo] ,'g', ... 
+                     [0,0,obj.estBot.l] , [obj.estBot.l,0,0] ,'g', ... 
                      obj.estBot.xMap(1:obj.estBot.len)-o,obj.estBot.yMap(1:obj.estBot.len)-oo,'ro');
+                xlim([-.05 4.05*.3048]);
+                ylim([-.05 4.05*.3048]);
                 pause(.05);
             end
             obj.context.robot.sendVelocity(0,0);            
@@ -169,7 +171,7 @@ classdef mrplSystem < handle
                 obj.context.robot.forksDown();
             end
             [xo, yo, tho] = obj.absToRel(x0, y0, th0);
-
+            %fprintf("x0 %f, y0 %f, tho %f",x0,y0,th0);
             if pick
                 [x, y, th] = mrplSystem.acquisitionPose(xo, yo, tho, .15);
                 obj.executeTrajectoryToRelativePose(x,y,th);

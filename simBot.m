@@ -18,10 +18,10 @@ classdef simBot < handle
             obj.robot = robot;
             obj.leftFirst = robot.encoders.LatestMessage.Vector.X;
             obj.rghtFirst = robot.encoders.LatestMessage.Vector.Y;
-            obj.enposx = 0.0;
-            obj.enposy = 0.0;
-            obj.enposth = 0.0;
-            obj.enpos = [0.0,0.0,0.0];
+            obj.enposx = .75*.3048;
+            obj.enposy = .75*.3048;
+            obj.enposth = pi/2;
+            obj.enpos = [.75*.3048,.75*.3048,pi/2];
             obj.oldLeft = 0.0;
             obj.oldRght = 0.0;
             obj.oldt = double(robot.encoders.LatestMessage.Header.Stamp.Sec) + double(robot.encoders.LatestMessage.Header.Stamp.Nsec)/1e9;
@@ -30,10 +30,13 @@ classdef simBot < handle
             obj.l = l;
             lines_p1 = [[0;l] [0;0] [l;0]];
             lines_p2 = [[0;0] [l;0] [l;l]];
+%             lines_p1 = [[l;0] [0;0] [0;-l]];
+%             lines_p2 = [[0;0] [0;-l] [l;-l]];
+
             obj.local = lineMapLocalizer(lines_p1,lines_p2,0.3,0.01,0.0005);
             obj.lines_p1 = lines_p1;
             obj.lines_p2 = lines_p2;
-            obj.gain = .1;
+            obj.gain = .5;
             obj.absStartX = absStartX;
             obj.absStartY = absStartY;
             obj.absStartTh = absStartTh;
@@ -94,7 +97,7 @@ classdef simBot < handle
 
             gx = xArr(1:15:j);
             gy = yArr(1:15:j);
-
+            
             [success, outPose] = obj.local.refinePose(obj.enpos,[gx; gy],50);
             if success == 1
                 %driver.drive(sys.context.robot, 1);

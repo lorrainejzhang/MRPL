@@ -113,8 +113,14 @@ classdef lineMapLocalizer < handle
 
      function [success, outPose] = refinePose(obj,inPose,ptsInModelFrame,maxIters)
             obj.ptsInRangeImage = ptsInModelFrame;
-            [x, y, th, success] = obj.main(maxIters, inPose);
-            outPose = [x,y,th];
+            if (length(obj.ptsInRangeImage) < 10)
+                success = 0;
+                outPose = [0,0,0];
+            else
+                %disp("len"); disp(length(obj.ptsInRangeImage));
+                [x, y, th, success] = obj.main(maxIters, inPose);
+                outPose = [x,y,th];
+            end
       end
         
      end
